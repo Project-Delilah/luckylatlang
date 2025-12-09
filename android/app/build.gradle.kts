@@ -1,7 +1,18 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
+
+    id("kotlin-android")
+    id("dev.flutter.flutter-gradle-plugin") // Must be after Android + Kotlin
+}
+
+// Load keystore properties
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -25,13 +36,49 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    // Kotlin/Java settings
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    println("=== Keystore Debug ===")
+    println("storeFile: ${keystoreProperties["storeFile"]}")
+    println("keyAlias: ${keystoreProperties["keyAlias"]}")
+    println("storePassword: ${keystoreProperties["storePassword"]}")
+    println("keyPassword: ${keystoreProperties["keyPassword"]}")
+    println("=======================")
+
+    // Signing configuration for release build
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
         }
     }
+
+    buildTypes {
+        release {
+            isShrinkResources = false
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+        }
+
+        debug {
+            signingConfig = signingConfigs.getByName("release") // Optional: use release key for debug too
+        }
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 kotlin {
