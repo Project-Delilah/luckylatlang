@@ -62,15 +62,18 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
-      child: TextButton.icon(
-        onPressed: onBack,
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
-        label: Text(label, style: AppTextStyles.bodySm),
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.muted,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
+        child: TextButton.icon(
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
+          label: Text(label, style: AppTextStyles.bodySm),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.muted,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
         ),
       ),
     );
