@@ -1,4 +1,5 @@
 class BirthProfile {
+  final String id;
   final String name;
   final DateTime birthDateTime;
   final int cityId;
@@ -7,7 +8,8 @@ class BirthProfile {
   final double latitude;
   final double longitude;
 
-  const BirthProfile({
+  BirthProfile({
+    String? id,
     required this.name,
     required this.birthDateTime,
     required this.cityId,
@@ -15,7 +17,7 @@ class BirthProfile {
     required this.countryCode,
     required this.latitude,
     required this.longitude,
-  });
+  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   BirthProfile copyWith({
     String? name,
@@ -26,6 +28,7 @@ class BirthProfile {
     double? latitude,
     double? longitude,
   }) => BirthProfile(
+    id: id,
     name: name ?? this.name,
     birthDateTime: birthDateTime ?? this.birthDateTime,
     cityId: cityId ?? this.cityId,
@@ -36,6 +39,7 @@ class BirthProfile {
   );
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'birthDateTime': birthDateTime.toIso8601String(),
     'cityId': cityId,
@@ -46,6 +50,7 @@ class BirthProfile {
   };
 
   factory BirthProfile.fromJson(Map<String, dynamic> j) => BirthProfile(
+    id: j['id'] as String?,
     name: j['name'] as String,
     birthDateTime: DateTime.parse(j['birthDateTime'] as String),
     cityId: j['cityId'] as int,

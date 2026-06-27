@@ -39,6 +39,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
+    final profiles = ref.watch(profileListProvider);
     final hidden = ref.watch(planetFilterProvider);
     final selectedCountry = ref.watch(countryFilterProvider);
     final countries = ref.watch(availableCountriesProvider);
@@ -74,6 +75,20 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
             // ── Profile card ──────────────────────────────────────────────
             if (profile != null) _ProfileCard(profile: profile),
+
+            // ── Profile switcher (only if 2+ saved) ───────────────────────
+            if (profiles.length > 1) ...[
+              _sectionHeader('PROFILES'),
+              ...profiles.map((p) => _ProfileSwitchTile(
+                profile: p,
+                isActive: p.id == profile?.id,
+                onTap: () {
+                  ref.read(profileProvider.notifier).setActive(p.id);
+                  Scaffold.of(context).closeDrawer();
+                },
+              )),
+              _drawerDivider(),
+            ],
 
             // About app link
             ListTile(
@@ -368,6 +383,72 @@ class _PlanetRow extends StatelessWidget {
               size: 18,
               color: visible ? planet.color : AppColors.onDarkSoft.withValues(alpha: 0.5),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Profile switch tile ────────────────────────────────────────────────────────
+
+class _ProfileSwitchTile extends StatelessWidget {
+  final BirthProfile profile;
+  final bool isActive;
+  final VoidCallback onTap;
+  const _ProfileSwitchTile({required this.profile, required this.isActive, required this.onTap});
+
+  String get _initials {
+    final parts = profile.name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      highlightColor: AppColors.surfaceDarkElevated,
+      splashColor: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primary : AppColors.surfaceDarkElevated,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(_initials,
+                  style: AppTextStyles.caption.copyWith(
+                      color: isActive ? Colors.white : AppColors.onDarkSoft,
+                      fontWeight: FontWeight.w600)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(profile.name,
+                      style: AppTextStyles.bodyMd.copyWith(
+                          color: isActive ? AppColors.primary : AppColors.onDark,
+                          fontWeight: isActive ? FontWeight.w600 : FontWeight.w400),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    '${DateFormat('d MMM yyyy').format(profile.birthDateTime)} · ${profile.cityName}',
+                    style: AppTextStyles.caption.copyWith(color: AppColors.onDarkSoft),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isActive)
+              const Icon(Icons.check_rounded, size: 16, color: AppColors.primary),
           ],
         ),
       ),
