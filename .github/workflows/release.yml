@@ -1,0 +1,70 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    environment: deployment
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+
+      - name: Get version from pubspec
+        id: version
+        run: |
+          VERSION=$(grep -m1 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get short commit SHA
+        id: sha
+        run: echo "SHA=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Get full commit message
+        id: commit
+        run: echo "MESSAGE=$(git log -1 --format='%s')" >> $GITHUB_OUTPUT
+
+      - name: Decode keystore
+        run: |
+          mkdir -p keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore/release-key.jks
+
+      - name: Configure signing
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=upload" >> android/key.properties
+          echo "storeFile=../../keystore/release-key.jks" >> android/key.properties
+          echo "=== Keystore Debug ==="
+          cat android/key.properties
+          echo "======================="
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --split-per-abi --release
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}-${{ steps.sha.outputs.SHA }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          body: |
+            **Commit:** ${{ steps.sha.outputs.SHA }}
+            **Message:** ${{ steps.commit.outputs.MESSAGE }}
+          draft: false
+          prerelease: false
+          files: |
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
