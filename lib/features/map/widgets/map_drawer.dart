@@ -6,11 +6,18 @@ import 'package:intl/intl.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../models/birth_profile.dart';
 import '../../../models/planet_line.dart';
 import '../../../providers/astro_provider.dart';
 import '../../../providers/city_provider.dart';
 import '../../../providers/profile_provider.dart';
+
+const _themeModes = [
+  (ThemeMode.system, 'Follow system', Icons.brightness_auto_outlined),
+  (ThemeMode.light, 'Light', Icons.light_mode_outlined),
+  (ThemeMode.dark, 'Dark', Icons.dark_mode_outlined),
+];
 
 class MapDrawer extends ConsumerStatefulWidget {
   const MapDrawer({super.key});
@@ -35,6 +42,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     final hidden = ref.watch(planetFilterProvider);
     final selectedCountry = ref.watch(countryFilterProvider);
     final countries = ref.watch(availableCountriesProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     final filtered = _query.isEmpty
         ? countries
@@ -66,6 +74,23 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
             // ── Profile card ──────────────────────────────────────────────
             if (profile != null) _ProfileCard(profile: profile),
+
+            // About app link
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              leading: const Icon(Icons.info_outline_rounded,
+                  color: AppColors.onDarkSoft, size: 20),
+              title: Text(
+                'About app',
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.onDark),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppColors.onDarkSoft, size: 18),
+              onTap: () {
+                Scaffold.of(context).closeDrawer();
+                context.push(Routes.about);
+              },
+            ),
 
             _drawerDivider(),
 
@@ -172,6 +197,42 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
                 context.push(Routes.profile);
               },
             ),
+
+            _drawerDivider(),
+
+            // ── Appearance ────────────────────────────────────────────────
+            _sectionHeader('APPEARANCE'),
+            ..._themeModes.map((entry) {
+              final selected = themeMode == entry.$1;
+              return InkWell(
+                onTap: () => ref.read(themeModeProvider.notifier).set(entry.$1),
+                highlightColor: AppColors.surfaceDarkElevated,
+                splashColor: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(entry.$3,
+                          size: 18,
+                          color: selected ? AppColors.primary : AppColors.onDarkSoft),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          entry.$2,
+                          style: AppTextStyles.bodyMd.copyWith(
+                            color: selected ? AppColors.primary : AppColors.onDark,
+                            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (selected)
+                        const Icon(Icons.check_rounded,
+                            size: 16, color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              );
+            }),
             const SizedBox(height: 16),
           ],
         ),

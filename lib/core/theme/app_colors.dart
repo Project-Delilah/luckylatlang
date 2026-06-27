@@ -1,5 +1,33 @@
 import 'package:flutter/material.dart';
 
+// ── Dynamic color helper — resolves to light or dark values by context ─────────
+class _DynamicColors {
+  final BuildContext _ctx;
+  const _DynamicColors(this._ctx);
+
+  bool get _dark => Theme.of(_ctx).brightness == Brightness.dark;
+
+  // Surfaces
+  Color get canvas => _dark ? const Color(0xFF1A1815) : AppColors.canvas;
+  Color get surfaceCard => _dark ? AppColors.surfaceDarkElevated : AppColors.surfaceCard;
+  Color get surfaceSoft => _dark ? AppColors.surfaceDarkSoft : AppColors.surfaceSoft;
+
+  // Text
+  Color get ink => _dark ? AppColors.onDark : AppColors.ink;
+  Color get body => _dark ? const Color(0xFFB8B4AC) : AppColors.body;
+  Color get muted => _dark ? AppColors.onDarkSoft : AppColors.muted;
+  Color get mutedSoft => _dark ? const Color(0xFF4A4845) : AppColors.mutedSoft;
+
+  // Borders
+  Color get hairline => _dark ? const Color(0xFF2E2A26) : AppColors.hairline;
+  Color get hairlineSoft => _dark ? const Color(0xFF242019) : AppColors.hairlineSoft;
+}
+
+extension AppColorsX on BuildContext {
+  // ignore: library_private_types_in_public_api
+  _DynamicColors get colors => _DynamicColors(this);
+}
+
 abstract final class AppColors {
   // Brand
   static const canvas = Color(0xFFFAF9F5);

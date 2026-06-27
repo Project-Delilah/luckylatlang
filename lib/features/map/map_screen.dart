@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../models/city_spot.dart';
+import '../../models/birth_profile.dart';
 import '../../providers/astro_provider.dart';
 import '../../providers/city_provider.dart';
+import '../../providers/profile_provider.dart';
 import 'widgets/city_spots_layer.dart';
 import 'widgets/computing_overlay.dart';
 import 'widgets/map_bottom_sheet.dart';
@@ -23,34 +26,14 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   final _mapCtrl = MapController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _searchCtrl = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(profileProvider);
     final astroAsync = ref.watch(astroResultProvider);
     final spotsAsync = ref.watch(citySpotsProvider);
     final hiddenPlanets = ref.watch(planetFilterProvider);
     final filteredSpots = ref.watch(filteredSpotsProvider);
-
-    final searchResults = _searchQuery.isEmpty
-        ? const <CitySpot>[]
-        : filteredSpots
-            .where((s) =>
-                s.cityName
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase()) ||
-                s.countryName
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase()))
-            .take(8)
-            .toList();
 
     return Scaffold(
       key: _scaffoldKey,
@@ -101,46 +84,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ],
           ),
 
-          // ── Top bar: hamburger + search ─────────────────────────────────
+          // ── Top bar — always dark (map overlay) ───────────────────────────
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      _DarkIconBtn(
-                        icon: Icons.menu_rounded,
-                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _SearchField(
-                          ctrl: _searchCtrl,
-                          onChanged: (v) => setState(() => _searchQuery = v),
-                          onClear: () => setState(() {
-                            _searchCtrl.clear();
-                            _searchQuery = '';
-                          }),
-                        ),
-                      ),
-                    ],
+                  _MapOverlayBtn(
+                    onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                    child: const Icon(Icons.menu_rounded,
+                        size: 20, color: AppColors.onDark),
                   ),
-                  if (searchResults.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    _SearchDropdown(
-                      results: searchResults,
-                      onTap: (city) {
-                        ref.read(selectedCityProvider.notifier).state = city;
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _searchCtrl.clear();
-                          _searchQuery = '';
-                        });
-                      },
-                    ),
-                  ],
+                  const Spacer(),
+                  _ProfileBtn(
+                    profile: profile,
+                    onTap: () => context.push(Routes.profile),
+                  ),
                 ],
               ),
             ),
@@ -191,163 +150,82 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 }
 
-// ── Hamburger icon button ──────────────────────────────────────────────────────
+// ── Generic dark overlay button (circle) ──────────────────────────────────────
 
-class _DarkIconBtn extends StatelessWidget {
-  final IconData icon;
+class _MapOverlayBtn extends StatelessWidget {
   final VoidCallback onTap;
-  const _DarkIconBtn({required this.icon, required this.onTap});
+  final Widget child;
+  const _MapOverlayBtn({required this.onTap, required this.child});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDarkElevated.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: AppColors.onDarkSoft.withValues(alpha: 0.25)),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2), blurRadius: 8)
-          ],
-        ),
-        child: Icon(icon, size: 20, color: AppColors.onDark),
-      ),
-    );
-  }
-}
-
-// ── Search field ───────────────────────────────────────────────────────────────
-
-class _SearchField extends StatelessWidget {
-  final TextEditingController ctrl;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  const _SearchField({required this.ctrl, required this.onChanged, required this.onClear});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDarkElevated.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.onDarkSoft.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8)
-        ],
-      ),
-      child: TextField(
-        controller: ctrl,
-        onChanged: onChanged,
-        style: AppTextStyles.bodySm.copyWith(color: AppColors.onDark),
-        decoration: InputDecoration(
-          hintText: 'Search cities…',
-          hintStyle: AppTextStyles.bodySm.copyWith(color: AppColors.onDarkSoft),
-          prefixIcon: const Icon(Icons.search_rounded, size: 18,
-              color: AppColors.onDarkSoft),
-          suffixIcon: ctrl.text.isNotEmpty
-              ? GestureDetector(
-                  onTap: onClear,
-                  child: const Icon(Icons.close_rounded,
-                      size: 16, color: AppColors.onDarkSoft),
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Search results dropdown ────────────────────────────────────────────────────
-
-class _SearchDropdown extends StatelessWidget {
-  final List<CitySpot> results;
-  final ValueChanged<CitySpot> onTap;
-  const _SearchDropdown({required this.results, required this.onTap});
-
-  Color _ratingColor(SpotRating r) => switch (r) {
-    SpotRating.lucky => AppColors.spotLucky,
-    SpotRating.neutral => AppColors.spotNeutral,
-    SpotRating.challenging => AppColors.spotChallenging,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
+        width: 46,
+        height: 46,
         decoration: BoxDecoration(
           color: AppColors.surfaceDarkElevated,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.onDarkSoft.withValues(alpha: 0.2)),
+          shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35), blurRadius: 16)
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: results.map((city) {
-              final inf = city.primaryInfluence;
-              return InkWell(
-                onTap: () => onTap(city),
-                highlightColor: AppColors.surfaceDark,
-                splashColor: Colors.transparent,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _ratingColor(city.rating),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(city.cityName,
-                                style: AppTextStyles.bodySm
-                                    .copyWith(color: AppColors.onDark),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
-                            Text(city.countryName,
-                                style: AppTextStyles.caption
-                                    .copyWith(color: AppColors.onDarkSoft),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
-                      ),
-                      if (inf != null) ...[
-                        Text(inf.planet.glyph,
-                            style: TextStyle(
-                                fontSize: 13, color: inf.planet.color)),
-                        const SizedBox(width: 4),
-                        Text(inf.type.displayName,
-                            style: AppTextStyles.caption
-                                .copyWith(color: inf.planet.color)),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
+        child: child,
+      ),
+    );
+  }
+}
+
+// ── Profile avatar button ──────────────────────────────────────────────────────
+
+class _ProfileBtn extends StatelessWidget {
+  final BirthProfile? profile;
+  final VoidCallback onTap;
+  const _ProfileBtn({required this.profile, required this.onTap});
+
+  String get _initials {
+    final name = profile?.name ?? '';
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return name[0].toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: profile != null ? AppColors.primary : AppColors.surfaceDarkElevated,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
+        alignment: Alignment.center,
+        child: profile != null
+            ? Text(
+                _initials,
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              )
+            : const Icon(Icons.person_outline_rounded,
+                size: 20, color: AppColors.onDark),
       ),
     );
   }

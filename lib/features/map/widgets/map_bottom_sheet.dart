@@ -46,10 +46,10 @@ class _MapBottomSheetState extends ConsumerState<MapBottomSheet> {
       snapSizes: const [0.08, 0.12, 0.52, 0.92],
       builder: (ctx, scrollCtrl) {
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.canvas,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
+          decoration: BoxDecoration(
+            color: ctx.colors.canvas,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: const [
               BoxShadow(color: Color(0x1F000000), blurRadius: 24, offset: Offset(0, -4)),
             ],
           ),

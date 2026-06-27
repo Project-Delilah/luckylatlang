@@ -37,7 +37,7 @@ class _SpotSheetContentState extends ConsumerState<SpotSheetContent> {
     return CustomScrollView(
       controller: widget.scrollCtrl,
       slivers: [
-        SliverToBoxAdapter(child: _handle()),
+        SliverToBoxAdapter(child: _handle(context)),
         SliverToBoxAdapter(
           child: _Summary(
             luckyCount: lucky.length,
@@ -73,13 +73,13 @@ class _SpotSheetContentState extends ConsumerState<SpotSheetContent> {
     );
   }
 
-  Widget _handle() => Center(
+  Widget _handle(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 4),
       child: Container(
         width: 36, height: 4,
         decoration: BoxDecoration(
-          color: AppColors.hairline,
+          color: context.colors.hairline,
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -99,7 +99,7 @@ class _Summary extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
       child: Row(
         children: [
-          Expanded(child: Text('$luckyCount lucky cities found', style: AppTextStyles.titleMd)),
+          Expanded(child: Text('$luckyCount lucky cities found', style: AppTextStyles.titleMd.copyWith(color: context.colors.ink))),
           _Pill(count: luckyCount, color: AppColors.spotLucky),
           const SizedBox(width: 6),
           _Pill(count: neutralCount, color: AppColors.spotNeutral),
@@ -180,7 +180,7 @@ class _TabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.ink;
+    final c = color ?? context.colors.ink;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -190,7 +190,7 @@ class _TabChip extends StatelessWidget {
           color: active ? c.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: active ? c.withValues(alpha: 0.4) : AppColors.hairline,
+            color: active ? c.withValues(alpha: 0.4) : context.colors.hairline,
             width: active ? 1.5 : 1,
           ),
         ),
@@ -199,13 +199,13 @@ class _TabChip extends StatelessWidget {
           children: [
             Text(label,
                 style: AppTextStyles.caption.copyWith(
-                  color: active ? c : AppColors.muted,
+                  color: active ? c : context.colors.muted,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 )),
             const SizedBox(width: 5),
             Text('$count',
                 style: AppTextStyles.caption.copyWith(
-                  color: active ? c : AppColors.mutedSoft,
+                  color: active ? c : context.colors.mutedSoft,
                   fontWeight: FontWeight.w600,
                 )),
           ],
@@ -235,8 +235,8 @@ class _CityRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.hairlineSoft, width: 0.5)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.hairlineSoft, width: 0.5)),
         ),
         child: Row(
           children: [
@@ -249,10 +249,10 @@ class _CityRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(spot.cityName, style: AppTextStyles.titleSm),
+                  Text(spot.cityName, style: AppTextStyles.titleSm.copyWith(color: context.colors.ink)),
                   const SizedBox(height: 1),
                   Text(spot.countryName,
-                      style: AppTextStyles.caption.copyWith(color: AppColors.muted)),
+                      style: AppTextStyles.caption.copyWith(color: context.colors.muted)),
                 ],
               ),
             ),
@@ -264,7 +264,7 @@ class _CityRow extends StatelessWidget {
                       .copyWith(color: inf.planet.color, fontWeight: FontWeight.w600)),
               const SizedBox(width: 8),
             ],
-            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.mutedSoft),
+            Icon(Icons.chevron_right_rounded, size: 18, color: context.colors.mutedSoft),
           ],
         ),
       ),
@@ -279,16 +279,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(40),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('✦', style: TextStyle(fontSize: 32, color: AppColors.hairline)),
-            SizedBox(height: 12),
+            Text('✦', style: TextStyle(fontSize: 32, color: context.colors.hairline)),
+            const SizedBox(height: 12),
             Text('No cities in this category',
-                style: TextStyle(color: AppColors.muted)),
+                style: TextStyle(color: context.colors.muted)),
           ],
         ),
       ),
