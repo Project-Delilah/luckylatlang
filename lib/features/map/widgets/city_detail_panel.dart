@@ -1,52 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../models/city_spot.dart';
-import '../../../providers/city_provider.dart';
 
-class CityDetailPanel extends ConsumerWidget {
+/// Content-only widget — rendered inside the shared DraggableScrollableSheet
+/// in MapBottomSheet. Does NOT own its own sheet or scrollController.
+class CityDetailContent extends StatelessWidget {
   final CitySpot city;
-  /// Called when the back button is pressed. Defaults to clearing selectedCity.
-  final VoidCallback? onBack;
-  const CityDetailPanel({super.key, required this.city, this.onBack});
+  final ScrollController scrollCtrl;
+  final VoidCallback onBack;
+
+  const CityDetailContent({
+    super.key,
+    required this.city,
+    required this.scrollCtrl,
+    required this.onBack,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.45,
-      minChildSize: 0.18,
-      maxChildSize: 0.92,
-      snap: true,
-      snapSizes: const [0.18, 0.45, 0.92],
-      builder: (ctx, scrollCtrl) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.canvas,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [BoxShadow(color: Color(0x1F000000), blurRadius: 24, offset: Offset(0, -4))],
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      controller: scrollCtrl,
+      slivers: [
+        SliverToBoxAdapter(child: _handle()),
+        SliverToBoxAdapter(child: _NavBar(label: city.cityId == -1 ? 'Map' : 'Cities', onBack: onBack)),
+        SliverToBoxAdapter(child: _Header(city: city)),
+        SliverToBoxAdapter(child: _RatingBadge(city: city)),
+        if (city.influences.isEmpty)
+          const SliverToBoxAdapter(child: _NoInfluences())
+        else ...[
+          const SliverToBoxAdapter(child: _SectionLabel('Active planet lines')),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, i) => _PlanetCard(inf: city.influences[i]),
+              childCount: city.influences.length,
+            ),
           ),
-          child: CustomScrollView(
-            controller: scrollCtrl,
-            slivers: [
-              SliverToBoxAdapter(child: _handle()),
-              SliverToBoxAdapter(child: _NavBar(ref: ref, onBack: onBack)),
-              SliverToBoxAdapter(child: _Header(city: city)),
-              SliverToBoxAdapter(child: _RatingBadge(city: city)),
-              if (city.influences.isNotEmpty) ...[
-                const SliverToBoxAdapter(child: _SectionLabel('Active planet lines')),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => _PlanetCard(inf: city.influences[i]),
-                    childCount: city.influences.length,
-                  ),
-                ),
-              ],
-              const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
-            ],
-          ),
-        );
-      },
+        ],
+        const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+      ],
     );
   }
 
@@ -64,26 +56,22 @@ class CityDetailPanel extends ConsumerWidget {
 // ── Back nav bar ──────────────────────────────────────────────────────────────
 
 class _NavBar extends StatelessWidget {
-  final WidgetRef ref;
-  final VoidCallback? onBack;
-  const _NavBar({required this.ref, this.onBack});
+  final String label;
+  final VoidCallback onBack;
+  const _NavBar({required this.label, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
-      child: Row(
-        children: [
-          TextButton.icon(
-            onPressed: onBack ?? () => ref.read(selectedCityProvider.notifier).state = null,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
-            label: Text('Cities', style: AppTextStyles.bodySm),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.muted,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-          ),
-        ],
+      child: TextButton.icon(
+        onPressed: onBack,
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
+        label: Text(label, style: AppTextStyles.bodySm),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.muted,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
       ),
     );
   }
@@ -103,11 +91,11 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(city.cityName, style: AppTextStyles.displaySm),
-          const SizedBox(height: 2),
-          Text(
-            city.countryName,
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.muted),
-          ),
+          if (city.countryName.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(city.countryName,
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.muted)),
+          ],
         ],
       ),
     );
@@ -152,9 +140,13 @@ class _RatingBadge extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 7, height: 7, decoration: BoxDecoration(color: _color, shape: BoxShape.circle)),
+                Container(
+                    width: 7, height: 7,
+                    decoration: BoxDecoration(color: _color, shape: BoxShape.circle)),
                 const SizedBox(width: 6),
-                Text(city.ratingLabel, style: AppTextStyles.caption.copyWith(color: _color, fontWeight: FontWeight.w700)),
+                Text(city.ratingLabel,
+                    style: AppTextStyles.caption
+                        .copyWith(color: _color, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -176,7 +168,25 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Text(text, style: AppTextStyles.captionUppercase.copyWith(color: AppColors.muted)),
+      child: Text(text,
+          style: AppTextStyles.captionUppercase.copyWith(color: AppColors.muted)),
+    );
+  }
+}
+
+// ── No influences ─────────────────────────────────────────────────────────────
+
+class _NoInfluences extends StatelessWidget {
+  const _NoInfluences();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
+      child: Text(
+        'No significant planet lines pass within 500 km of this location.',
+        style: TextStyle(color: AppColors.muted),
+      ),
     );
   }
 }
@@ -188,19 +198,19 @@ class _PlanetCard extends StatelessWidget {
   const _PlanetCard({required this.inf});
 
   String get _effectLabel {
-    final score = inf.score;
-    if (score > 1.5) return 'Strong benefit';
-    if (score > 0.5) return 'Moderate benefit';
-    if (score > 0) return 'Mild benefit';
-    if (score > -0.5) return 'Mild tension';
-    if (score > -1.5) return 'Moderate tension';
+    final s = inf.score;
+    if (s > 1.5) return 'Strong benefit';
+    if (s > 0.5) return 'Moderate benefit';
+    if (s > 0) return 'Mild benefit';
+    if (s > -0.5) return 'Mild tension';
+    if (s > -1.5) return 'Moderate tension';
     return 'Strong tension';
   }
 
   Color get _effectColor {
-    final score = inf.score;
-    if (score > 0) return AppColors.spotLucky;
-    if (score > -0.5) return AppColors.spotNeutral;
+    final s = inf.score;
+    if (s > 0) return AppColors.spotLucky;
+    if (s > -0.5) return AppColors.spotNeutral;
     return AppColors.spotChallenging;
   }
 
@@ -216,7 +226,6 @@ class _PlanetCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Planet header
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
@@ -228,29 +237,28 @@ class _PlanetCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: Text(inf.planet.glyph, style: TextStyle(fontSize: 18, color: inf.planet.color)),
+                  child: Text(inf.planet.glyph,
+                      style: TextStyle(fontSize: 18, color: inf.planet.color)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${inf.planet.displayName} ${inf.type.displayName}',
-                        style: AppTextStyles.titleSm,
-                      ),
+                      Text('${inf.planet.displayName} ${inf.type.displayName}',
+                          style: AppTextStyles.titleSm),
                       const SizedBox(height: 2),
-                      Text(
-                        '${inf.type.fullName}  ·  ${inf.distanceKm.round()} km away',
-                        style: AppTextStyles.caption.copyWith(color: AppColors.muted),
-                      ),
+                      Text('${inf.type.fullName}  ·  ${inf.distanceKm.round()} km away',
+                          style: AppTextStyles.caption.copyWith(color: AppColors.muted)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(_effectLabel, style: AppTextStyles.caption.copyWith(color: _effectColor, fontWeight: FontWeight.w600)),
+                    Text(_effectLabel,
+                        style: AppTextStyles.caption
+                            .copyWith(color: _effectColor, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     _StrengthBar(strength: inf.strength, color: inf.planet.color),
                   ],
@@ -258,7 +266,6 @@ class _PlanetCard extends StatelessWidget {
               ],
             ),
           ),
-          // Interpretation
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(

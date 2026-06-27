@@ -7,14 +7,17 @@ import '../../../providers/city_provider.dart';
 
 enum _Tab { all, lucky, neutral, challenging }
 
-class SpotBottomSheet extends ConsumerStatefulWidget {
-  const SpotBottomSheet({super.key});
+/// Content-only widget — rendered inside the shared DraggableScrollableSheet
+/// in MapBottomSheet. Does NOT own its own sheet or scrollController.
+class SpotSheetContent extends ConsumerStatefulWidget {
+  final ScrollController scrollCtrl;
+  const SpotSheetContent({super.key, required this.scrollCtrl});
 
   @override
-  ConsumerState<SpotBottomSheet> createState() => _SpotBottomSheetState();
+  ConsumerState<SpotSheetContent> createState() => _SpotSheetContentState();
 }
 
-class _SpotBottomSheetState extends ConsumerState<SpotBottomSheet> {
+class _SpotSheetContentState extends ConsumerState<SpotSheetContent> {
   _Tab _tab = _Tab.all;
 
   @override
@@ -31,60 +34,42 @@ class _SpotBottomSheetState extends ConsumerState<SpotBottomSheet> {
       _Tab.all => spots,
     };
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.12,
-      minChildSize: 0.08,
-      maxChildSize: 0.92,
-      snap: true,
-      snapSizes: const [0.08, 0.12, 0.52, 0.92],
-      builder: (ctx, scrollCtrl) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.canvas,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [BoxShadow(color: Color(0x1F000000), blurRadius: 24, offset: Offset(0, -4))],
+    return CustomScrollView(
+      controller: widget.scrollCtrl,
+      slivers: [
+        SliverToBoxAdapter(child: _handle()),
+        SliverToBoxAdapter(
+          child: _Summary(
+            luckyCount: lucky.length,
+            neutralCount: neutral.length,
+            challengingCount: challenging.length,
           ),
-          child: CustomScrollView(
-            controller: scrollCtrl,
-            slivers: [
-              SliverToBoxAdapter(child: _handle()),
-              SliverToBoxAdapter(
-                child: _Summary(
-                  luckyCount: lucky.length,
-                  neutralCount: neutral.length,
-                  challengingCount: challenging.length,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _TabBar(
-                  selected: _tab,
-                  total: spots.length,
-                  luckyCount: lucky.length,
-                  neutralCount: neutral.length,
-                  challengingCount: challenging.length,
-                  onSelect: (t) => setState(() => _tab = t),
-                ),
-              ),
-              if (displayed.isEmpty)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyState(),
-                )
-              else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => _CityRow(
-                      spot: displayed[i],
-                      onTap: () => ref.read(selectedCityProvider.notifier).state = displayed[i],
-                    ),
-                    childCount: displayed.length,
-                  ),
-                ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-            ],
+        ),
+        SliverToBoxAdapter(
+          child: _TabBar(
+            selected: _tab,
+            total: spots.length,
+            luckyCount: lucky.length,
+            neutralCount: neutral.length,
+            challengingCount: challenging.length,
+            onSelect: (t) => setState(() => _tab = t),
           ),
-        );
-      },
+        ),
+        if (displayed.isEmpty)
+          const SliverFillRemaining(hasScrollBody: false, child: _EmptyState())
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, i) => _CityRow(
+                spot: displayed[i],
+                onTap: () =>
+                    ref.read(selectedCityProvider.notifier).state = displayed[i],
+              ),
+              childCount: displayed.length,
+            ),
+          ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
+      ],
     );
   }
 
@@ -114,12 +99,7 @@ class _Summary extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              '$luckyCount lucky cities found',
-              style: AppTextStyles.titleMd,
-            ),
-          ),
+          Expanded(child: Text('$luckyCount lucky cities found', style: AppTextStyles.titleMd)),
           _Pill(count: luckyCount, color: AppColors.spotLucky),
           const SizedBox(width: 6),
           _Pill(count: neutralCount, color: AppColors.spotNeutral),
@@ -144,7 +124,9 @@ class _Pill extends StatelessWidget {
         color: color.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text('$count', style: AppTextStyles.caption.copyWith(color: color, fontWeight: FontWeight.w700)),
+      child: Text('$count',
+          style: AppTextStyles.caption
+              .copyWith(color: color, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -215,15 +197,17 @@ class _TabChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: AppTextStyles.caption.copyWith(
-              color: active ? c : AppColors.muted,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-            )),
+            Text(label,
+                style: AppTextStyles.caption.copyWith(
+                  color: active ? c : AppColors.muted,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                )),
             const SizedBox(width: 5),
-            Text('$count', style: AppTextStyles.caption.copyWith(
-              color: active ? c : AppColors.mutedSoft,
-              fontWeight: FontWeight.w600,
-            )),
+            Text('$count',
+                style: AppTextStyles.caption.copyWith(
+                  color: active ? c : AppColors.mutedSoft,
+                  fontWeight: FontWeight.w600,
+                )),
           ],
         ),
       ),
@@ -247,8 +231,6 @@ class _CityRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inf = spot.primaryInfluence;
-    final ratingColor = _ratingColor(spot.rating);
-
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -260,7 +242,7 @@ class _CityRow extends StatelessWidget {
           children: [
             Container(
               width: 9, height: 9,
-              decoration: BoxDecoration(color: ratingColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: _ratingColor(spot.rating), shape: BoxShape.circle),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -269,7 +251,8 @@ class _CityRow extends StatelessWidget {
                 children: [
                   Text(spot.cityName, style: AppTextStyles.titleSm),
                   const SizedBox(height: 1),
-                  Text(spot.countryName, style: AppTextStyles.caption.copyWith(color: AppColors.muted)),
+                  Text(spot.countryName,
+                      style: AppTextStyles.caption.copyWith(color: AppColors.muted)),
                 ],
               ),
             ),
@@ -277,10 +260,11 @@ class _CityRow extends StatelessWidget {
               Text(inf.planet.glyph, style: TextStyle(fontSize: 14, color: inf.planet.color)),
               const SizedBox(width: 4),
               Text(inf.type.displayName,
-                  style: AppTextStyles.caption.copyWith(color: inf.planet.color, fontWeight: FontWeight.w600)),
+                  style: AppTextStyles.caption
+                      .copyWith(color: inf.planet.color, fontWeight: FontWeight.w600)),
               const SizedBox(width: 8),
             ],
-            Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.mutedSoft),
+            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.mutedSoft),
           ],
         ),
       ),
@@ -303,7 +287,8 @@ class _EmptyState extends StatelessWidget {
           children: [
             Text('✦', style: TextStyle(fontSize: 32, color: AppColors.hairline)),
             SizedBox(height: 12),
-            Text('No cities in this category', style: TextStyle(color: AppColors.muted)),
+            Text('No cities in this category',
+                style: TextStyle(color: AppColors.muted)),
           ],
         ),
       ),

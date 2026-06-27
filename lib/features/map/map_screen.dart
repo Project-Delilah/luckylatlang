@@ -11,11 +11,10 @@ import 'package:latlong2/latlong.dart' show LatLng;
 import '../../providers/astro_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/profile_provider.dart';
-import 'widgets/city_detail_panel.dart';
 import 'widgets/city_spots_layer.dart';
 import 'widgets/computing_overlay.dart';
+import 'widgets/map_bottom_sheet.dart';
 import 'widgets/planet_lines_layer.dart';
-import 'widgets/spot_bottom_sheet.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -28,10 +27,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final _mapCtrl = MapController();
   bool _showPlanetFilter = false;
 
-  // Stable keys prevent DraggableScrollableSheet from resetting on rebuild
-  final _spotSheetKey = GlobalKey();
-  final _cityDetailKey = GlobalKey();
-  final _pointDetailKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +34,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final astroAsync = ref.watch(astroResultProvider);
     final spotsAsync = ref.watch(citySpotsProvider);
     final hiddenPlanets = ref.watch(planetFilterProvider);
-    final selectedCity = ref.watch(selectedCityProvider);
     final filteredSpots = ref.watch(filteredSpotsProvider);
     final selectedCountry = ref.watch(countryFilterProvider);
-    final tappedPoint = ref.watch(tappedPointProvider);
-    final tappedSpot = ref.watch(tappedPointSpotProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
@@ -88,7 +80,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               if (spotsAsync.valueOrNull != null)
                 CitySpotsLayer(
                   spots: filteredSpots,
-                  selected: selectedCity,
+                  selected: ref.watch(selectedCityProvider),
                   onTap: (city) =>
                       ref.read(selectedCityProvider.notifier).state = city,
                 ),
@@ -147,25 +139,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-          // ── Bottom sheet (city list / point detail / city detail) ─────────
-          // Positioned.fill gives DraggableScrollableSheet bounded height;
-          // touches above the visible sheet fraction pass through to the map.
-          // Stable GlobalKeys prevent the sheet from collapsing on state change.
-          Positioned.fill(
-            child: selectedCity != null
-                ? CityDetailPanel(
-                    key: _cityDetailKey,
-                    city: selectedCity,
-                    onBack: () => ref.read(selectedCityProvider.notifier).state = null,
-                  )
-                : tappedPoint != null && tappedSpot != null
-                    ? CityDetailPanel(
-                        key: _pointDetailKey,
-                        city: tappedSpot,
-                        onBack: () => ref.read(tappedPointProvider.notifier).state = null,
-                      )
-                    : SpotBottomSheet(key: _spotSheetKey),
-          ),
+          // ── Bottom sheet ───────────────────────────────────────────────────
+          // Single persistent DraggableScrollableSheet — content swaps inside
+          // it so the sheet stays at whatever position the user scrolled to.
+          const Positioned.fill(child: MapBottomSheet()),
 
           // ── Error banner ───────────────────────────────────────────────────
           if (astroAsync.hasError)

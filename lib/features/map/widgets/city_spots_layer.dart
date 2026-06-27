@@ -31,10 +31,12 @@ class CitySpotsLayer extends StatelessWidget {
         final color = _color(spot.rating);
         return Marker(
           point: LatLng(spot.latitude, spot.longitude),
-          width: isSelected ? 100 : 80,
-          height: isSelected ? 36 : 28,
-          alignment: Alignment.topCenter,
+          width: isSelected ? 120 : 44,
+          height: isSelected ? 40 : 44,
+          alignment: Alignment.center,
           child: GestureDetector(
+            // opaque: entire marker box is a tap target, not just the visible dot
+            behavior: HitTestBehavior.opaque,
             onTap: () => onTap(spot),
             child: _SpotMarker(spot: spot, color: color, selected: isSelected),
           ),
