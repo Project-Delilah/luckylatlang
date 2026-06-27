@@ -43,13 +43,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           // ── Map ────────────────────────────────────────────────────────────
           FlutterMap(
             mapController: _mapCtrl,
-            options: const MapOptions(
-              initialCenter: LatLng(20.0, 0.0),
-              initialZoom: 2.0,
-              minZoom: 1.5,
+            options: MapOptions(
+              initialCenter: const LatLng(20.0, 0.0),
+              initialZoom: 2.5,
+              minZoom: 2.0,
               maxZoom: 10,
-              interactionOptions: InteractionOptions(
-                // Rotation disabled — compass resets are disorienting on a world map
+              // Prevent panning past the poles so the gray canvas never shows
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-85.06, -180),
+                  const LatLng(85.06, 180),
+                ),
+              ),
+              interactionOptions: const InteractionOptions(
+                // Rotation disabled — disorienting on a flat world map
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
             ),

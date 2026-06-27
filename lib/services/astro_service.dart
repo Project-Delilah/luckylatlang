@@ -92,17 +92,24 @@ class AstroService {
 
   List<List<LatLng>> _horizLine(double ra, double dec, double gmstD,
       {required bool rising}) {
-    final decR = dec * _d2r;
+    // Parameterise by hour angle H ∈ [0°, 180°] rather than by latitude.
+    // This gives uniform 1°-longitude steps so curves stay smooth everywhere,
+    // including near the polar turning-points where lat-sampling causes kinks.
+    //   lat  = atan(-cosH / tanDec)        from cosH = -tanDec·tanLat
+    //   lon  = ra ± H - gmst              (sign flips for rising vs setting)
+    final tanDec = math.tan(dec * _d2r);
+    if (tanDec.abs() < 1e-9) return []; // equatorial planet — no AC/DC arc
+
     final pts = <LatLng>[];
     final segments = <List<LatLng>>[];
 
-    for (var lat = -80.0; lat <= 80.0; lat += 0.5) {
-      final cosH = -math.tan(decR) * math.tan(lat * _d2r);
-      if (cosH.abs() > 1.0) continue;
+    for (var h = 0.0; h <= 180.0; h += 0.5) {
+      final lat = math.atan2(-math.cos(h * _d2r), tanDec) * _r2d;
+      if (lat.abs() > 85.0) continue; // clip beyond map bounds
 
-      final hDeg = math.acos(cosH) * _r2d;
-      final lon = _normLon(rising ? ra + hDeg - gmstD : ra - hDeg - gmstD);
+      final lon = _normLon(rising ? ra + h - gmstD : ra - h - gmstD);
 
+      // Split segment at antimeridian crossing
       if (pts.isNotEmpty && (lon - pts.last.longitude).abs() > 180.0) {
         segments.add(List.of(pts));
         pts.clear();
