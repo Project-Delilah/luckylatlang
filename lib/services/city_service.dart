@@ -58,6 +58,51 @@ class CityService {
   final CityDb _db;
   CityService(this._db);
 
+  /// Score an arbitrary geographic point against all planet lines.
+  /// Returns a synthetic CitySpot (cityId = -1) — no DB lookup needed.
+  CitySpot scorePoint(AstroResult astro, LatLng point) {
+    final influences = <LineInfluence>[];
+    final seen = <(Planet, LineType)>{};
+
+    for (final line in astro.lines) {
+      final key = (line.planet, line.type);
+      if (seen.contains(key)) continue;
+
+      var minDist = double.infinity;
+      for (final seg in line.segments) {
+        final d = _minDistToSegment(point, seg);
+        if (d < minDist) minDist = d;
+      }
+      if (minDist > _influenceRadiusKm) continue;
+
+      seen.add(key);
+      final strength = (_influenceRadiusKm - minDist) / _influenceRadiusKm;
+      influences.add(LineInfluence(
+        planet: line.planet,
+        type: line.type,
+        distanceKm: minDist,
+        strength: strength,
+        interpretation: _interpret(line.planet, line.type),
+      ));
+    }
+
+    influences.sort((a, b) => b.strength.compareTo(a.strength));
+    final score = influences.fold(0.0, (s, inf) => s + inf.score);
+
+    final lat = point.latitude.toStringAsFixed(3);
+    final lng = point.longitude.toStringAsFixed(3);
+    return CitySpot(
+      cityId: -1,
+      cityName: '$lat°, $lng°',
+      countryCode: '',
+      countryName: 'Custom location',
+      latitude: point.latitude,
+      longitude: point.longitude,
+      score: score,
+      influences: influences,
+    );
+  }
+
   Future<List<CitySpot>> computeSpots(AstroResult astro) async {
     // Collect candidate cities across all lines
     final Map<int, Map<String, dynamic>> cityRows = {};

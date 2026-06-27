@@ -7,7 +7,9 @@ import '../../../providers/city_provider.dart';
 
 class CityDetailPanel extends ConsumerWidget {
   final CitySpot city;
-  const CityDetailPanel({super.key, required this.city});
+  /// Called when the back button is pressed. Defaults to clearing selectedCity.
+  final VoidCallback? onBack;
+  const CityDetailPanel({super.key, required this.city, this.onBack});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +30,7 @@ class CityDetailPanel extends ConsumerWidget {
             controller: scrollCtrl,
             slivers: [
               SliverToBoxAdapter(child: _handle()),
-              SliverToBoxAdapter(child: _NavBar(ref: ref)),
+              SliverToBoxAdapter(child: _NavBar(ref: ref, onBack: onBack)),
               SliverToBoxAdapter(child: _Header(city: city)),
               SliverToBoxAdapter(child: _RatingBadge(city: city)),
               if (city.influences.isNotEmpty) ...[
@@ -63,7 +65,8 @@ class CityDetailPanel extends ConsumerWidget {
 
 class _NavBar extends StatelessWidget {
   final WidgetRef ref;
-  const _NavBar({required this.ref});
+  final VoidCallback? onBack;
+  const _NavBar({required this.ref, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +75,7 @@ class _NavBar extends StatelessWidget {
       child: Row(
         children: [
           TextButton.icon(
-            onPressed: () => ref.read(selectedCityProvider.notifier).state = null,
+            onPressed: onBack ?? () => ref.read(selectedCityProvider.notifier).state = null,
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
             label: Text('Cities', style: AppTextStyles.bodySm),
             style: TextButton.styleFrom(

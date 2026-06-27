@@ -104,8 +104,9 @@ class AstroService {
     final segments = <List<LatLng>>[];
 
     for (var h = 0.0; h <= 180.0; h += 0.5) {
-      final lat = math.atan2(-math.cos(h * _d2r), tanDec) * _r2d;
-      if (lat.abs() > 85.0) continue; // clip beyond map bounds
+      // atan (not atan2) always returns (-90°, 90°), correct for all dec signs
+      final lat = math.atan(-math.cos(h * _d2r) / tanDec) * _r2d;
+      if (lat.abs() > 85.0) continue; // clip at map edges
 
       final lon = _normLon(rising ? ra + h - gmstD : ra - h - gmstD);
 

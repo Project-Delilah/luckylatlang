@@ -7,11 +7,13 @@ import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/planet_line.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 import '../../providers/astro_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/profile_provider.dart';
 import 'widgets/city_detail_panel.dart';
 import 'widgets/city_spots_layer.dart';
+import 'widgets/computing_overlay.dart';
 import 'widgets/planet_lines_layer.dart';
 import 'widgets/spot_bottom_sheet.dart';
 
@@ -26,6 +28,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final _mapCtrl = MapController();
   bool _showPlanetFilter = false;
 
+  // Stable keys prevent DraggableScrollableSheet from resetting on rebuild
+  final _spotSheetKey = GlobalKey();
+  final _cityDetailKey = GlobalKey();
+  final _pointDetailKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
@@ -35,6 +42,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final selectedCity = ref.watch(selectedCityProvider);
     final filteredSpots = ref.watch(filteredSpotsProvider);
     final selectedCountry = ref.watch(countryFilterProvider);
+    final tappedPoint = ref.watch(tappedPointProvider);
+    final tappedSpot = ref.watch(tappedPointSpotProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
@@ -59,6 +68,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 // Rotation disabled — disorienting on a flat world map
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
+              onTap: (tapPos, latLng) {
+                // Clear city selection; score the tapped point
+                ref.read(selectedCityProvider.notifier).state = null;
+                ref.read(tappedPointProvider.notifier).state = latLng;
+              },
             ),
             children: [
               TileLayer(
@@ -125,24 +139,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-          // ── Loading bar ────────────────────────────────────────────────────
+          // ── Computing overlay ──────────────────────────────────────────────
           if (astroAsync.isLoading || spotsAsync.isLoading)
-            Positioned(
-              top: 0, left: 0, right: 0,
-              child: LinearProgressIndicator(
-                backgroundColor: Colors.transparent,
-                color: AppColors.primary.withValues(alpha: 0.7),
-                minHeight: 2,
+            Positioned.fill(
+              child: ComputingOverlay(
+                computingLines: astroAsync.isLoading,
               ),
             ),
 
-          // ── Bottom sheet (city list or detail) ─────────────────────────────
+          // ── Bottom sheet (city list / point detail / city detail) ─────────
           // Positioned.fill gives DraggableScrollableSheet bounded height;
-          // touches above the visible fraction pass through to the map.
+          // touches above the visible sheet fraction pass through to the map.
+          // Stable GlobalKeys prevent the sheet from collapsing on state change.
           Positioned.fill(
             child: selectedCity != null
-                ? CityDetailPanel(city: selectedCity)
-                : const SpotBottomSheet(),
+                ? CityDetailPanel(
+                    key: _cityDetailKey,
+                    city: selectedCity,
+                    onBack: () => ref.read(selectedCityProvider.notifier).state = null,
+                  )
+                : tappedPoint != null && tappedSpot != null
+                    ? CityDetailPanel(
+                        key: _pointDetailKey,
+                        city: tappedSpot,
+                        onBack: () => ref.read(tappedPointProvider.notifier).state = null,
+                      )
+                    : SpotBottomSheet(key: _spotSheetKey),
           ),
 
           // ── Error banner ───────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import '../core/db/city_db.dart';
 import '../models/city_spot.dart';
 import '../services/city_service.dart';
@@ -40,6 +41,20 @@ final availableCountriesProvider = Provider<List<({String code, String name})>>(
   }
   result.sort((a, b) => a.name.compareTo(b.name));
   return result;
+});
+
+// Tapped map point (lat/lng) for blank-spot scoring
+final tappedPointProvider = StateProvider<LatLng?>((ref) => null);
+
+// Synchronously score the tapped point against planet lines
+final tappedPointSpotProvider = Provider<CitySpot?>((ref) {
+  final point = ref.watch(tappedPointProvider);
+  if (point == null) return null;
+  final astro = ref.watch(astroResultProvider).valueOrNull;
+  if (astro == null) return null;
+  final service = ref.watch(cityServiceProvider);
+  if (service == null) return null;
+  return service.scorePoint(astro, point);
 });
 
 // Spots filtered by selected country
