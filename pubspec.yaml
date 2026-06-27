@@ -1,0 +1,56 @@
+name: luckylatlang
+description: "Astrocartography — discover your lucky places on Earth."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.4.0
+
+  # Navigation
+  go_router: ^14.3.0
+
+  # Local storage
+  shared_preferences: ^2.3.2
+  sqflite: ^2.3.3+1
+  path_provider: ^2.1.4
+
+  # Map
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # (astro computation is pure Dart — no native dependency needed)
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Utils
+  intl: ^0.19.0
+  path: ^1.9.0
+
+  # PDF + share
+  pdf: ^3.11.1
+  printing: ^5.13.1
+  share_plus: ^10.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.4.0
+  custom_lint: ^0.7.6
+  riverpod_lint: ^2.4.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/cities.db
