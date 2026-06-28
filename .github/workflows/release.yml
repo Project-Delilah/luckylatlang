@@ -38,25 +38,6 @@ jobs:
         id: commit
         run: echo "MESSAGE=$(git log -1 --format='%s')" >> $GITHUB_OUTPUT
 
-      - name: Decode keystore
-        run: |
-          mkdir -p keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore/keystore-raw.jks
-          # AGP's DER parser doesn't support ASN.1 tag numbers >30 (produced by modern PKCS12).
-          # Re-export to legacy JKS via Java's keytool (which uses full JCE) so AGP can read it.
-          keytool -importkeystore \
-            -srckeystore  keystore/keystore-raw.jks \
-            -destkeystore keystore/release-key.jks \
-            -deststoretype JKS \
-            -srcstorepass  "${{ secrets.STORE_PASSWORD }}" \
-            -deststorepass "${{ secrets.STORE_PASSWORD }}" \
-            -srcalias  upload \
-            -destalias upload \
-            -srckeypass  "${{ secrets.KEY_PASSWORD }}" \
-            -destkeypass "${{ secrets.KEY_PASSWORD }}" \
-            -noprompt
-          rm keystore/keystore-raw.jks
-
       - name: Configure signing
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
