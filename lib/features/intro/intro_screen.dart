@@ -6,6 +6,7 @@ import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/profile_provider.dart';
+import 'widgets/fortune_widget.dart';
 
 class IntroScreen extends ConsumerStatefulWidget {
   const IntroScreen({super.key});
@@ -103,7 +104,12 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                       ),
                     ),
                   ),
-                  const Spacer(flex: 3),
+                  const Spacer(flex: 1),
+                  FadeTransition(
+                    opacity: _fadeAnim,
+                    child: const FortuneWidget(style: FortuneWidgetStyle.dark),
+                  ),
+                  const Spacer(flex: 2),
                   FadeTransition(
                     opacity: _fadeAnim,
                     child: Column(
