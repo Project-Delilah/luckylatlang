@@ -39,7 +39,7 @@ dependencies:
   # PDF + share
   pdf: ^3.11.1
   printing: ^5.13.1
-  share_plus: ^10.1.2
+  share_plus: ^13.2.0
 
 dev_dependencies:
   flutter_test:
