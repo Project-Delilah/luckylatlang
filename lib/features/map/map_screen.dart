@@ -38,7 +38,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) context.go(Routes.intro);
+        if (didPop) return;
+        // Dismiss selections before leaving the screen
+        final city = ref.read(selectedCityProvider);
+        final point = ref.read(tappedPointProvider);
+        if (city != null) {
+          ref.read(selectedCityProvider.notifier).state = null;
+        } else if (point != null) {
+          ref.read(tappedPointProvider.notifier).state = null;
+        } else {
+          context.go(Routes.intro);
+        }
       },
       child: Scaffold(
       key: _scaffoldKey,
