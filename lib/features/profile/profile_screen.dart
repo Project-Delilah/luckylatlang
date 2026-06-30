@@ -110,13 +110,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     await ref.read(profileProvider.notifier).save(profile);
-    if (mounted) {
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go(Routes.map);
-      }
-    }
+    if (mounted) context.go(Routes.map);
   }
 
   void _showError(String msg) {

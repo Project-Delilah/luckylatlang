@@ -35,7 +35,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final hiddenPlanets = ref.watch(planetFilterProvider);
     final filteredSpots = ref.watch(filteredSpotsProvider);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go(Routes.intro);
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.surfaceDark,
       drawer: const MapDrawer(),
@@ -134,6 +139,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
         ],
       ),
+      ), // PopScope
     );
   }
 

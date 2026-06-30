@@ -38,9 +38,9 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
   void _proceed() {
     final profile = ref.read(profileProvider);
     if (profile != null) {
-      context.go(Routes.map);
+      context.push(Routes.map);
     } else {
-      context.go(Routes.profile);
+      context.push(Routes.profile);
     }
   }
 
@@ -118,7 +118,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                           final profile = r.watch(profileProvider);
                           if (profile == null) return const SizedBox.shrink();
                           return TextButton(
-                            onPressed: () => ctx.go(Routes.profile),
+                            onPressed: () => ctx.push(Routes.profile),
                             child: Text(
                               'Change profile',
                               style: AppTextStyles.bodySm.copyWith(color: AppColors.mutedSoft),
