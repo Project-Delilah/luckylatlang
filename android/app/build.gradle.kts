@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         applicationId = "com.isg32.luckylatlang"
-        minSdk = flutter.minSdkVersion
+        minSdk = 21  // Android 5.0+ — explicitly pinned so upgrades can't raise it
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
