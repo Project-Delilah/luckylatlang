@@ -12,6 +12,7 @@ import '../../../models/planet_line.dart';
 import '../../../providers/astro_provider.dart';
 import '../../../providers/city_provider.dart';
 import '../../../providers/profile_provider.dart';
+import '../../report/report_service.dart';
 
 const _themeModes = [
   (ThemeMode.system, 'Follow system', Icons.brightness_auto_outlined),
@@ -29,11 +30,24 @@ class MapDrawer extends ConsumerStatefulWidget {
 class _MapDrawerState extends ConsumerState<MapDrawer> {
   final _countrySearch = TextEditingController();
   String _query = '';
+  bool _exportingPdf = false;
 
   @override
   void dispose() {
     _countrySearch.dispose();
     super.dispose();
+  }
+
+  Future<void> _doExport() async {
+    final profile = ref.read(profileProvider);
+    final spots = ref.read(citySpotsProvider).valueOrNull ?? [];
+    if (profile == null) return;
+    setState(() => _exportingPdf = true);
+    try {
+      await shareReport(profile, spots);
+    } finally {
+      if (mounted) setState(() => _exportingPdf = false);
+    }
   }
 
   @override
@@ -105,6 +119,32 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
                 Scaffold.of(context).closeDrawer();
                 context.push(Routes.about);
               },
+            ),
+
+            // Export PDF
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              leading: _exportingPdf
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primary),
+                    )
+                  : const Icon(Icons.picture_as_pdf_outlined,
+                      color: AppColors.onDarkSoft, size: 20),
+              title: Text(
+                _exportingPdf ? 'Generating PDF…' : 'Export PDF',
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.onDark),
+              ),
+              subtitle: _exportingPdf
+                  ? null
+                  : Text(
+                      'Share your astrocartography report',
+                      style: AppTextStyles.caption.copyWith(
+                          color: AppColors.onDarkSoft, fontSize: 11),
+                    ),
+              onTap: _exportingPdf ? null : _doExport,
             ),
 
             _drawerDivider(),
