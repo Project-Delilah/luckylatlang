@@ -5,56 +5,30 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/fortune_widget_bg_coral"
-    android:padding="16dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="✦ Lucky Lat·Lang"
-            android:textColor="#FFFFFF99"
-            android:textSize="9sp"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.08" />
-
-        <ImageView
-            android:id="@+id/fortune_refresh_btn"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_fortune_refresh"
-            android:padding="6dp"
-            android:contentDescription="New quote" />
-
-    </LinearLayout>
+    android:paddingStart="22dp"
+    android:paddingEnd="22dp"
+    android:paddingTop="18dp"
+    android:paddingBottom="18dp"
+    android:gravity="center_vertical">
 
     <TextView
         android:id="@+id/fortune_quote"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"
+        android:layout_height="wrap_content"
         android:text=""
         android:textColor="#FFFFFF"
-        android:textSize="14sp"
+        android:textSize="17sp"
         android:fontFamily="serif"
-        android:textStyle="italic"
-        android:lineSpacingMultiplier="1.55"
-        android:gravity="center_vertical" />
+        android:lineSpacingMultiplier="1.55" />
 
     <TextView
         android:id="@+id/fortune_attr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:text=""
         android:textColor="#FFFFFF99"
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:fontFamily="sans-serif" />
 
 </LinearLayout>

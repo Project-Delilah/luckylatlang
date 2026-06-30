@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.widget.RemoteViews
 import org.json.JSONArray
 
@@ -30,7 +29,6 @@ private val FALLBACK = arrayOf(
 
 abstract class FortuneWidgetProvider : AppWidgetProvider() {
     abstract val layoutRes: Int
-    abstract val muteColor: Int
 
     override fun onUpdate(ctx: Context, mgr: AppWidgetManager, ids: IntArray) =
         ids.forEach { updateWidget(ctx, mgr, it) }
@@ -50,23 +48,14 @@ abstract class FortuneWidgetProvider : AppWidgetProvider() {
 
         views.setTextViewText(R.id.fortune_quote, body)
         views.setTextViewText(R.id.fortune_attr, attr)
-        views.setInt(R.id.fortune_refresh_btn, "setColorFilter", muteColor)
 
-        // Tap refresh icon → pick new quote (stays off-app, no activity launch)
-        val refreshIntent = Intent(ctx, this.javaClass).also { it.action = ACTION_REFRESH }
+        // Tap anywhere on the widget → pick new quote (no app launch)
         val refreshPi = PendingIntent.getBroadcast(
-            ctx, id, refreshIntent,
+            ctx, id,
+            Intent(ctx, this.javaClass).also { it.action = ACTION_REFRESH },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        views.setOnClickPendingIntent(R.id.fortune_refresh_btn, refreshPi)
-
-        // Tap quote area → open app
-        ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)?.let { launch ->
-            val openPi = PendingIntent.getActivity(
-                ctx, 0, launch, PendingIntent.FLAG_IMMUTABLE
-            )
-            views.setOnClickPendingIntent(R.id.fortune_root, openPi)
-        }
+        views.setOnClickPendingIntent(R.id.fortune_root, refreshPi)
 
         mgr.updateAppWidget(id, views)
     }
@@ -95,15 +84,12 @@ abstract class FortuneWidgetProvider : AppWidgetProvider() {
 
 class FortuneWidgetDark : FortuneWidgetProvider() {
     override val layoutRes = R.layout.fortune_widget_dark
-    override val muteColor = Color.parseColor("#6C6A64")
 }
 
 class FortuneWidgetCoral : FortuneWidgetProvider() {
     override val layoutRes = R.layout.fortune_widget_coral
-    override val muteColor = Color.argb(0x99, 0xFF, 0xFF, 0xFF)
 }
 
 class FortuneWidgetMaterial : FortuneWidgetProvider() {
     override val layoutRes = R.layout.fortune_widget_material
-    override val muteColor = Color.parseColor("#7986CB")
 }
