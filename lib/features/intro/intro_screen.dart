@@ -19,6 +19,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
   late final AnimationController _ctrl;
   late final Animation<double> _fadeAnim;
   late final Animation<double> _scaleAnim;
+  late final String _cutout;
 
   @override
   void initState() {
@@ -27,6 +28,8 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
     _fadeAnim = CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.6, curve: Curves.easeOut));
     _scaleAnim = CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.6, curve: Curves.easeOut));
     _ctrl.forward();
+    final idx = math.Random().nextInt(30) + 1;
+    _cutout = 'assets/animated/animated_cutout_${idx.toString().padLeft(2, '0')}.webp';
   }
 
   @override
@@ -103,7 +106,15 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                       ),
                     ),
                   ),
-                  const Spacer(flex: 3),
+                  Flexible(
+                    flex: 3,
+                    child: FadeTransition(
+                      opacity: _fadeAnim,
+                      child: Center(
+                        child: Image.asset(_cutout, fit: BoxFit.contain),
+                      ),
+                    ),
+                  ),
                   FadeTransition(
                     opacity: _fadeAnim,
                     child: Column(

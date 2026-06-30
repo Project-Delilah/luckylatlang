@@ -65,3 +65,9 @@ flutter:
   assets:
     - assets/data/cities.db
     - assets/icons/
+    - assets/animated/
+    - assets/goth/
+    - assets/mystic/
+    - assets/planets/
+    - assets/signs/
+    - assets/topography/
