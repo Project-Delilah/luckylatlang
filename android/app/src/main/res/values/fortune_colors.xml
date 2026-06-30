@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fallback colors (pre-Android 12). On API 31+ these are overridden by values-v31/. -->
+<resources>
+    <color name="fortune_material_bg">#1B2A3B</color>
+    <color name="fortune_material_text">#E8EAF6</color>
+    <color name="fortune_material_muted">#7986CB</color>
+    <color name="fortune_material_accent">#9FA8DA</color>
+</resources>

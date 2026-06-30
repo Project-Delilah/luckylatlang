@@ -31,6 +31,47 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Fortune home screen widgets — tap ↺ for new quote, tap card to open app -->
+        <receiver
+            android:name=".FortuneWidgetDark"
+            android:exported="true"
+            android:label="@string/fortune_widget_dark_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.isg32.luckylatlang.FORTUNE_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fortune_widget_dark_info" />
+        </receiver>
+
+        <receiver
+            android:name=".FortuneWidgetCoral"
+            android:exported="true"
+            android:label="@string/fortune_widget_coral_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.isg32.luckylatlang.FORTUNE_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fortune_widget_coral_info" />
+        </receiver>
+
+        <receiver
+            android:name=".FortuneWidgetMaterial"
+            android:exported="true"
+            android:label="@string/fortune_widget_material_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.isg32.luckylatlang.FORTUNE_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fortune_widget_material_info" />
+        </receiver>
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

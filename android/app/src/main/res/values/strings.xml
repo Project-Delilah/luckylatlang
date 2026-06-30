@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lucky Lat·Lang</string>
+
+    <string name="fortune_widget_dark_label">Fortune (Dark)</string>
+    <string name="fortune_widget_coral_label">Fortune (Coral)</string>
+    <string name="fortune_widget_material_label">Fortune (Material)</string>
+
+    <string name="fortune_widget_dark_desc">A fortune-mod quote on a dark background</string>
+    <string name="fortune_widget_coral_desc">A fortune-mod quote on a coral background</string>
+    <string name="fortune_widget_material_desc">A fortune-mod quote using your device\'s Material You colors</string>
+</resources>
