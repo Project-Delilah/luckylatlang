@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/fortune_widget_bg_coral"
-    android:paddingStart="22dp"
-    android:paddingEnd="22dp"
+    android:paddingStart="30dp"
+    android:paddingEnd="30dp"
     android:paddingTop="18dp"
     android:paddingBottom="18dp"
     android:gravity="center_vertical">
