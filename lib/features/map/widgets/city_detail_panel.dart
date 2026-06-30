@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../models/city_spot.dart';
+import '../../../models/natal_chart.dart';
+import '../../../providers/astro_provider.dart';
 
-class CityDetailContent extends StatelessWidget {
+class CityDetailContent extends ConsumerWidget {
   final CitySpot city;
   final ScrollController scrollCtrl;
   final VoidCallback onBack;
@@ -16,7 +19,8 @@ class CityDetailContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final natal = ref.watch(natalChartProvider);
     return CustomScrollView(
       controller: scrollCtrl,
       slivers: [
@@ -35,7 +39,7 @@ class CityDetailContent extends StatelessWidget {
           const SliverToBoxAdapter(child: _SectionLabel('Active planet lines')),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (_, i) => _PlanetCard(inf: city.influences[i]),
+              (_, i) => _PlanetCard(inf: city.influences[i], natal: natal),
               childCount: city.influences.length,
             ),
           ),
@@ -216,7 +220,8 @@ class _NoInfluences extends StatelessWidget {
 
 class _PlanetCard extends StatelessWidget {
   final LineInfluence inf;
-  const _PlanetCard({required this.inf});
+  final NatalChart? natal;
+  const _PlanetCard({required this.inf, required this.natal});
 
   String get _effectLabel {
     final s = inf.score;
@@ -292,6 +297,24 @@ class _PlanetCard extends StatelessWidget {
                         '${inf.type.fullName}  ·  ${inf.distanceKm.round()} km away',
                         style: AppTextStyles.caption.copyWith(color: context.colors.muted),
                       ),
+                      if (natal?.planets[inf.planet]?.sign case final sign?) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/signs/mundane_solar_ingress_${sign.name}.webp',
+                              width: 14, height: 14, fit: BoxFit.contain,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              sign.displayName,
+                              style: AppTextStyles.caption.copyWith(
+                                  color: context.colors.mutedSoft, fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -313,6 +336,11 @@ class _PlanetCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.colors.canvas,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+              image: const DecorationImage(
+                image: AssetImage('assets/topography/ya_topographic_header.png'),
+                fit: BoxFit.cover,
+                opacity: 0.07,
+              ),
             ),
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Text(inf.interpretation,

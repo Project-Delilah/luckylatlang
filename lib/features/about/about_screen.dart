@@ -1,10 +1,30 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  late final String _mysticPath;
+
+  @override
+  void initState() {
+    super.initState();
+    final idx = math.Random().nextInt(30);
+    _mysticPath = idx < 28
+        ? 'assets/mystic/module_timeline_shop_sign_edu_${(idx + 1).toString().padLeft(2, '0')}.webp'
+        : idx == 28
+            ? 'assets/mystic/module_timeline_shop_void.webp'
+            : 'assets/mystic/module_timeline_shop_year_ahead.webp';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +124,33 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   ..._steps.map((s) => _Step(number: s.$1, text: s.$2)),
                 ],
+              ),
+            ),
+          ),
+
+          // ── Mystic polaroid ───────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(40, 36, 40, 0),
+              child: Transform.rotate(
+                angle: -0.025,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(3)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Color(0x26000000),
+                          blurRadius: 28,
+                          offset: Offset(0, 10)),
+                    ],
+                  ),
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 28),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(2)),
+                    child: Image.asset(_mysticPath, fit: BoxFit.cover),
+                  ),
+                ),
               ),
             ),
           ),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -20,6 +22,14 @@ class MapBottomSheet extends ConsumerStatefulWidget {
 
 class _MapBottomSheetState extends ConsumerState<MapBottomSheet> {
   final _sheetCtrl = DraggableScrollableController();
+  late final String _topoBg;
+
+  @override
+  void initState() {
+    super.initState();
+    final idx = math.Random().nextInt(3) + 1;
+    _topoBg = 'assets/topography/ya_topography_theme_$idx.webp';
+  }
 
   @override
   void dispose() {
@@ -49,6 +59,11 @@ class _MapBottomSheetState extends ConsumerState<MapBottomSheet> {
           decoration: BoxDecoration(
             color: ctx.colors.canvas,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            image: DecorationImage(
+              image: AssetImage(_topoBg),
+              fit: BoxFit.cover,
+              opacity: 0.06,
+            ),
             boxShadow: const [
               BoxShadow(color: Color(0x1F000000), blurRadius: 24, offset: Offset(0, -4)),
             ],

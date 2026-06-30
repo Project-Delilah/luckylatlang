@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -52,6 +51,16 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
   }
 
   final natal = AstroService().computeNatal(profile);
+
+  // Pre-load zodiac sign constellation images for planet cards
+  final signImages = <ZodiacSign, pw.MemoryImage>{};
+  for (final sign in ZodiacSign.values) {
+    try {
+      final data = await rootBundle.load(
+          'assets/signs/mundane_solar_ingress_${sign.name}.webp');
+      signImages[sign] = pw.MemoryImage(data.buffer.asUint8List());
+    } catch (_) {}
+  }
 
   final lucky = (allSpots.where((s) => s.rating == SpotRating.lucky).toList()
         ..sort((a, b) => b.score.compareTo(a.score)))
@@ -184,7 +193,7 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
       // ── Natal chart section ────────────────────────────────────────────
       pw.Padding(
         padding: const pw.EdgeInsets.fromLTRB(40, 32, 40, 0),
-        child: _natalSection(natal, displayBold, bodyReg, bodyMed, bodyBold),
+        child: _natalSection(natal, signImages, displayBold, bodyReg, bodyMed, bodyBold),
       ),
 
       // ── City content ───────────────────────────────────────────────────
@@ -293,6 +302,7 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
 
 pw.Widget _natalSection(
   NatalChart natal,
+  Map<ZodiacSign, pw.MemoryImage> signImages,
   pw.Font displayBold,
   pw.Font bodyReg,
   pw.Font bodyMed,
@@ -446,12 +456,14 @@ pw.Widget _natalSection(
           children: [
             pw.Expanded(
               child: _planetCard(natal.planets[order[i]]!, natal.functionalNature[order[i]],
+                  signImages[natal.planets[order[i]]!.sign],
                   displayBold, bodyReg, bodyMed, bodyBold),
             ),
             pw.SizedBox(width: 10),
             pw.Expanded(
               child: i + 1 < order.length && natal.planets[order[i + 1]] != null
                   ? _planetCard(natal.planets[order[i + 1]]!, natal.functionalNature[order[i + 1]],
+                      signImages[natal.planets[order[i + 1]]!.sign],
                       displayBold, bodyReg, bodyMed, bodyBold)
                   : pw.SizedBox(),
             ),
@@ -466,6 +478,7 @@ pw.Widget _natalSection(
 pw.Widget _planetCard(
   PlanetNatal p,
   FunctionalNature? fn,
+  pw.MemoryImage? signImage,
   pw.Font displayBold,
   pw.Font bodyReg,
   pw.Font bodyMed,
@@ -491,15 +504,32 @@ pw.Widget _planetCard(
       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
     ),
     child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-      // Header: planet name + sign
-      pw.Text(
-        '${p.planet.displayName} in ${p.sign.displayName}',
-        style: pw.TextStyle(font: displayBold, fontSize: 13, color: _ink),
-      ),
-      pw.SizedBox(height: 2),
-      pw.Text(
-        '${_ordinal(p.house)} House · ${p.sign.element} · ${p.sign.traditionalRuler.displayName}-ruled',
-        style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+      // Header: planet name + sign (with constellation image on right)
+      pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  '${p.planet.displayName} in ${p.sign.displayName}',
+                  style: pw.TextStyle(font: displayBold, fontSize: 13, color: _ink),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  '${_ordinal(p.house)} House · ${p.sign.element} · ${p.sign.traditionalRuler.displayName}-ruled',
+                  style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+                ),
+              ],
+            ),
+          ),
+          if (signImage != null)
+            pw.Opacity(
+              opacity: 0.55,
+              child: pw.Image(signImage, width: 40, height: 40, fit: pw.BoxFit.contain),
+            ),
+        ],
       ),
       pw.SizedBox(height: 6),
       // Badges: functional nature + sign dignity

@@ -1,9 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/natal_chart.dart';
 import '../models/planet_line.dart';
 import '../services/astro_service.dart';
 import 'profile_provider.dart';
 
 final astroServiceProvider = Provider<AstroService>((_) => AstroService());
+
+// Synchronous natal chart — cached by Riverpod, recomputes only when profile changes.
+final natalChartProvider = Provider<NatalChart?>((ref) {
+  final profile = ref.watch(profileProvider);
+  if (profile == null) return null;
+  return AstroService().computeNatal(profile);
+});
 
 final astroResultProvider = FutureProvider<AstroResult?>((ref) async {
   final profile = ref.watch(profileProvider);
