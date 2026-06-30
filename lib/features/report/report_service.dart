@@ -58,7 +58,7 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
       .toList();
 
   final doc = pw.Document(
-    author: 'isg32',
+    author: 'Sapan Gajjar',
     title: "Lucky Lat·Lang — ${profile.name}'s Report",
   );
 
@@ -77,9 +77,12 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
             'Generated ${DateFormat('d MMM yyyy').format(DateTime.now())}',
             style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
           ),
-          pw.Text(
-            'Lucky Lat·Lang  ·  Made by isg32',
-            style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+          pw.UrlLink(
+            destination: 'https://github.com/isg32',
+            child: pw.Text(
+              'Lucky Lat·Lang  ·  Sapan Gajjar',
+              style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _coral),
+            ),
           ),
           pw.Text(
             'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
@@ -200,6 +203,70 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
                   style: pw.TextStyle(font: bodyReg, fontSize: 11, color: _muted),
                 ),
               ),
+
+            // ── Links ───────────────────────────────────────────────────
+            pw.SizedBox(height: 32),
+            pw.Divider(color: _hairline, height: 1, thickness: 0.5),
+            pw.SizedBox(height: 16),
+            pw.Row(
+              children: [
+                pw.UrlLink(
+                  destination: 'https://github.com/Project-Delilah/luckylatlang/releases',
+                  child: pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: pw.BoxDecoration(
+                      color: _coral,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                    ),
+                    child: pw.Text(
+                      'Download App',
+                      style: pw.TextStyle(font: bodyBold, fontSize: 9, color: PdfColors.white),
+                    ),
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.UrlLink(
+                  destination: 'https://github.com/Project-Delilah/luckylatlang',
+                  child: pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: _hairline, width: 0.8),
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                    ),
+                    child: pw.Text(
+                      'View on GitHub',
+                      style: pw.TextStyle(font: bodyMed, fontSize: 9, color: _body),
+                    ),
+                  ),
+                ),
+                pw.Spacer(),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'Made by',
+                      style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.UrlLink(
+                      destination: 'https://github.com/isg32',
+                      child: pw.Text(
+                        'Sapan Gajjar',
+                        style: pw.TextStyle(font: bodyBold, fontSize: 10, color: _coral),
+                      ),
+                    ),
+                    pw.UrlLink(
+                      destination: 'https://github.com/isg32',
+                      child: pw.Text(
+                        'github.com/isg32',
+                        style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
           ],
         ),
       ),
