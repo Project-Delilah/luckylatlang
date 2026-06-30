@@ -54,6 +54,16 @@ jobs:
       - name: Build APK
         run: flutter build apk --split-per-abi --release
 
+      - name: Rename APKs
+        run: |
+          cd build/app/outputs/flutter-apk
+          DT=$(date +%Y%m%d_%H%M)
+          for f in app-*-release.apk; do
+            ARCH=$(echo "$f" | sed 's/app-\(.*\)-release\.apk/\1/')
+            mv "$f" "luckylatlang_${ARCH}_${DT}-signed.apk"
+          done
+          ls -la
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
