@@ -322,7 +322,7 @@ pw.Widget _natalSection(
             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
           ),
           child: pw.Text(
-            'WHOLE SIGN HOUSES',
+            'SIDEREAL · WHOLE SIGN',
             style: pw.TextStyle(font: bodyMed, fontSize: 8, color: _coral, letterSpacing: 0.8),
           ),
         ),

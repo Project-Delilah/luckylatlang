@@ -79,26 +79,29 @@ class AstroService {
     final eps = _obliquity(T);
     final earth = _heliocentricEcliptic(_earthElements, T);
 
-    // Ascendant ecliptic longitude (Meeus, Whole Sign houses)
-    final ascLon = _ascendant(gmstDeg, profile.longitude, profile.latitude, eps);
+    // Lahiri ayanamsha converts tropical → sidereal (Vedic) positions
+    final ayanamsha = _ayanamsha(T);
+
+    // Ascendant — compute tropical then shift to sidereal
+    final ascLon = _normDeg(_ascendant(gmstDeg, profile.longitude, profile.latitude, eps) - ayanamsha);
     final ascSign = ZodiacSign.fromLon(ascLon);
 
     final natalPlanets = <Planet, PlanetNatal>{};
 
     // Sun — geocentric = opposite of Earth heliocentric
-    final sunLon = _normDeg(math.atan2(-earth.y, -earth.x) * _r2d);
+    final sunLon = _normDeg(math.atan2(-earth.y, -earth.x) * _r2d - ayanamsha);
     natalPlanets[Planet.sun] = _makeNatal(Planet.sun, sunLon, ascSign);
 
     // Moon — simplified lunar theory (ecliptic longitude only, no lat needed for sign)
     final d = jd - 2451545.0;
     final mAnom = (134.963 + 13.064993 * d) * _d2r;
-    final moonLon = _normDeg((218.316 + 13.176396 * d) + 6.289 * math.sin(mAnom));
+    final moonLon = _normDeg((218.316 + 13.176396 * d) + 6.289 * math.sin(mAnom) - ayanamsha);
     natalPlanets[Planet.moon] = _makeNatal(Planet.moon, moonLon, ascSign);
 
     // Remaining planets from orbital elements
     for (final entry in _planetElements.entries) {
       final helio = _heliocentricEcliptic(entry.value, T);
-      final lon = _normDeg(math.atan2(helio.y - earth.y, helio.x - earth.x) * _r2d);
+      final lon = _normDeg(math.atan2(helio.y - earth.y, helio.x - earth.x) * _r2d - ayanamsha);
       natalPlanets[entry.key] = _makeNatal(entry.key, lon, ascSign);
     }
 
@@ -245,6 +248,9 @@ class AstroService {
   // Mean obliquity of ecliptic (Meeus Ch. 22)
   double _obliquity(double T) =>
       23.439291111 - 0.013004167 * T - 0.000001639 * T * T + 0.000000503 * T * T * T;
+
+  // Lahiri ayanamsha — tropical → sidereal offset in degrees
+  double _ayanamsha(double T) => 23.85317 + 1.39552 * T;
 
   // Simplified lunar theory, good to ~1° (Meeus Ch. 47 truncated)
   (double ra, double dec) _moonEquatorial(double jd, double T, double eps) {
