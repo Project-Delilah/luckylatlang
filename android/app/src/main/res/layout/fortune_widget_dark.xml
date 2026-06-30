@@ -17,9 +17,9 @@
         android:layout_height="wrap_content"
         android:text=""
         android:textColor="#FAF9F5"
-        android:textSize="17sp"
+        android:textSize="13sp"
         android:fontFamily="serif"
-        android:lineSpacingMultiplier="1.55" />
+        android:lineSpacingMultiplier="1.25" />
 
     <TextView
         android:id="@+id/fortune_attr"
