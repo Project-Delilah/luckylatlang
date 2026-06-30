@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 import '../models/birth_profile.dart';
+import '../models/natal_chart.dart';
 import '../models/planet_line.dart';
 
 class AstroResult {
@@ -63,6 +64,69 @@ class AstroService {
       lines.addAll(_buildLines(planet, ra, dec, gmstDeg));
     }
     return AstroResult(lines);
+  }
+
+  // ── Natal chart ───────────────────────────────────────────────────────────
+
+  NatalChart computeNatal(BirthProfile profile) {
+    final dt = profile.birthDateTime.toUtc();
+    final jd = _julianDay(
+      dt.year, dt.month, dt.day,
+      dt.hour + dt.minute / 60.0 + dt.second / 3600.0,
+    );
+    final T = (jd - 2451545.0) / 36525.0;
+    final gmstDeg = _gmst(jd, T);
+    final eps = _obliquity(T);
+    final earth = _heliocentricEcliptic(_earthElements, T);
+
+    // Ascendant ecliptic longitude (Meeus, Whole Sign houses)
+    final ascLon = _ascendant(gmstDeg, profile.longitude, profile.latitude, eps);
+    final ascSign = ZodiacSign.fromLon(ascLon);
+
+    final natalPlanets = <Planet, PlanetNatal>{};
+
+    // Sun — geocentric = opposite of Earth heliocentric
+    final sunLon = _normDeg(math.atan2(-earth.y, -earth.x) * _r2d);
+    natalPlanets[Planet.sun] = _makeNatal(Planet.sun, sunLon, ascSign);
+
+    // Moon — simplified lunar theory (ecliptic longitude only, no lat needed for sign)
+    final d = jd - 2451545.0;
+    final mAnom = (134.963 + 13.064993 * d) * _d2r;
+    final moonLon = _normDeg((218.316 + 13.176396 * d) + 6.289 * math.sin(mAnom));
+    natalPlanets[Planet.moon] = _makeNatal(Planet.moon, moonLon, ascSign);
+
+    // Remaining planets from orbital elements
+    for (final entry in _planetElements.entries) {
+      final helio = _heliocentricEcliptic(entry.value, T);
+      final lon = _normDeg(math.atan2(helio.y - earth.y, helio.x - earth.x) * _r2d);
+      natalPlanets[entry.key] = _makeNatal(entry.key, lon, ascSign);
+    }
+
+    return NatalChart(
+      ascLon: ascLon,
+      ascSign: ascSign,
+      ascDegree: ascLon % 30,
+      planets: natalPlanets,
+    );
+  }
+
+  // Ascendant ecliptic longitude from LMST, latitude and obliquity (Meeus)
+  double _ascendant(double gmstDeg, double lon, double lat, double eps) {
+    final lmstR = _normDeg(gmstDeg + lon) * _d2r;
+    final epsR = eps * _d2r;
+    final latR = lat * _d2r;
+    return _normDeg(
+      math.atan2(
+        math.cos(lmstR),
+        -(math.sin(epsR) * math.tan(latR) + math.cos(epsR) * math.sin(lmstR)),
+      ) * _r2d,
+    );
+  }
+
+  PlanetNatal _makeNatal(Planet planet, double lon, ZodiacSign ascSign) {
+    final sign = ZodiacSign.fromLon(lon);
+    final house = (sign.index - ascSign.index + 12) % 12 + 1;
+    return PlanetNatal(planet: planet, eclipticLon: lon, sign: sign, house: house);
   }
 
   // ── Line geometry ─────────────────────────────────────────────────────────

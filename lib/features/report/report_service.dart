@@ -7,6 +7,10 @@ import 'package:printing/printing.dart';
 
 import '../../models/birth_profile.dart';
 import '../../models/city_spot.dart';
+import '../../models/natal_chart.dart';
+import '../../models/planet_line.dart';
+import '../../services/astro_service.dart';
+import '../../services/natal_interpretations.dart';
 
 // ── Brand palette ──────────────────────────────────────────────────────────────
 const _coral = PdfColor(0.800, 0.471, 0.361);       // #CC785C
@@ -45,6 +49,8 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
     bodyMed = pw.Font.helveticaBold();
     bodyBold = pw.Font.helveticaBold();
   }
+
+  final natal = AstroService().computeNatal(profile);
 
   final lucky = (allSpots.where((s) => s.rating == SpotRating.lucky).toList()
         ..sort((a, b) => b.score.compareTo(a.score)))
@@ -174,7 +180,13 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
         ),
       ),
 
-      // ── Content ────────────────────────────────────────────────────────
+      // ── Natal chart section ────────────────────────────────────────────
+      pw.Padding(
+        padding: const pw.EdgeInsets.fromLTRB(40, 32, 40, 0),
+        child: _natalSection(natal, displayBold, bodyReg, bodyMed, bodyBold),
+      ),
+
+      // ── City content ───────────────────────────────────────────────────
       pw.Padding(
         padding: const pw.EdgeInsets.fromLTRB(40, 32, 40, 24),
         child: pw.Column(
@@ -274,6 +286,231 @@ Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async
   ));
 
   return doc.save();
+}
+
+// ── Natal section ─────────────────────────────────────────────────────────────
+
+pw.Widget _natalSection(
+  NatalChart natal,
+  pw.Font displayBold,
+  pw.Font bodyReg,
+  pw.Font bodyMed,
+  pw.Font bodyBold,
+) {
+  // Planet order for display
+  const order = [
+    Planet.sun, Planet.moon, Planet.mercury, Planet.venus, Planet.mars,
+    Planet.jupiter, Planet.saturn, Planet.uranus, Planet.neptune, Planet.pluto,
+  ];
+
+  final ascDesc = ascendantDescriptions[natal.ascSign] ?? '';
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      // Section heading
+      pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+        pw.Container(width: 4, height: 24, color: _coral),
+        pw.SizedBox(width: 10),
+        pw.Text('Your Birth Chart',
+            style: pw.TextStyle(font: displayBold, fontSize: 20, color: _ink)),
+        pw.Spacer(),
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: pw.BoxDecoration(
+            color: _tint(_coral, 0.84),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+          ),
+          child: pw.Text(
+            'WHOLE SIGN HOUSES',
+            style: pw.TextStyle(font: bodyMed, fontSize: 8, color: _coral, letterSpacing: 0.8),
+          ),
+        ),
+      ]),
+      pw.SizedBox(height: 8),
+      pw.Divider(color: _hairline, height: 1, thickness: 0.5),
+      pw.SizedBox(height: 16),
+
+      // Ascendant + description
+      pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: pw.BoxDecoration(
+          color: _card,
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        ),
+        child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Row(children: [
+            pw.Text('Ascendant  ', style: pw.TextStyle(font: bodyMed, fontSize: 9, color: _muted)),
+            pw.Text(
+              '${natal.ascSign.displayName}  ${natal.ascDegree.toStringAsFixed(0)}°',
+              style: pw.TextStyle(font: bodyBold, fontSize: 12, color: _ink),
+            ),
+            pw.Text(
+              '  ${natal.ascSign.element} sign · Ruled by ${natal.ascSign.traditionalRuler.displayName}',
+              style: pw.TextStyle(font: bodyReg, fontSize: 9, color: _muted),
+            ),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Text(ascDesc, style: pw.TextStyle(font: bodyReg, fontSize: 10, color: _body)),
+        ]),
+      ),
+      pw.SizedBox(height: 16),
+
+      // Planet table
+      pw.Table(
+        border: pw.TableBorder(
+          horizontalInside: pw.BorderSide(color: _hairline, width: 0.4),
+          bottom: pw.BorderSide(color: _hairline, width: 0.4),
+          top: pw.BorderSide(color: _hairline, width: 0.4),
+          left: pw.BorderSide(color: _hairline, width: 0.4),
+          right: pw.BorderSide(color: _hairline, width: 0.4),
+          verticalInside: pw.BorderSide(color: _hairline, width: 0.4),
+        ),
+        columnWidths: const {
+          0: pw.FlexColumnWidth(2.2), // Planet
+          1: pw.FlexColumnWidth(2.2), // Sign
+          2: pw.FlexColumnWidth(1.0), // House
+          3: pw.FlexColumnWidth(1.2), // Degree
+          4: pw.FlexColumnWidth(2.2), // Ruler
+        },
+        children: [
+          // Header
+          pw.TableRow(
+            decoration: pw.BoxDecoration(color: _card),
+            children: [
+              for (final h in ['PLANET', 'SIGN', 'HOUSE', 'DEGREE', 'SIGN RULER'])
+                pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: pw.Text(h,
+                      style: pw.TextStyle(
+                          font: bodyMed, fontSize: 7.5, color: _muted, letterSpacing: 0.6)),
+                ),
+            ],
+          ),
+          // Planet rows
+          for (final planet in order)
+            if (natal.planets[planet] != null)
+              pw.TableRow(
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: pw.Text(planet.displayName,
+                        style: pw.TextStyle(font: bodyBold, fontSize: 9, color: _ink)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: pw.Text(natal.planets[planet]!.sign.displayName,
+                        style: pw.TextStyle(font: bodyReg, fontSize: 9, color: _body)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: pw.Text(_ordinal(natal.planets[planet]!.house),
+                        style: pw.TextStyle(font: bodyReg, fontSize: 9, color: _body)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: pw.Text('${natal.planets[planet]!.degreeInSign.toStringAsFixed(0)}°',
+                        style: pw.TextStyle(font: bodyReg, fontSize: 9, color: _body)),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    child: pw.Text(natal.planets[planet]!.sign.traditionalRuler.displayName,
+                        style: pw.TextStyle(font: bodyReg, fontSize: 9, color: _muted)),
+                  ),
+                ],
+              ),
+        ],
+      ),
+      pw.SizedBox(height: 24),
+
+      // Planetary profile heading
+      pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+        pw.Container(width: 4, height: 20, color: _coral),
+        pw.SizedBox(width: 10),
+        pw.Text('Planetary Profile',
+            style: pw.TextStyle(font: displayBold, fontSize: 18, color: _ink)),
+      ]),
+      pw.SizedBox(height: 8),
+      pw.Divider(color: _hairline, height: 1, thickness: 0.5),
+      pw.SizedBox(height: 14),
+
+      // Two-column planet cards
+      for (var i = 0; i < order.length; i += 2) ...[
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: _planetCard(natal.planets[order[i]]!, displayBold, bodyReg, bodyMed, bodyBold),
+            ),
+            pw.SizedBox(width: 10),
+            pw.Expanded(
+              child: i + 1 < order.length && natal.planets[order[i + 1]] != null
+                  ? _planetCard(natal.planets[order[i + 1]]!, displayBold, bodyReg, bodyMed, bodyBold)
+                  : pw.SizedBox(),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 10),
+      ],
+    ],
+  );
+}
+
+pw.Widget _planetCard(
+  PlanetNatal p,
+  pw.Font displayBold,
+  pw.Font bodyReg,
+  pw.Font bodyMed,
+  pw.Font bodyBold,
+) {
+  final signText = planetInSign[p.planet];
+  final interpretation = signText != null && p.sign.index < signText.length
+      ? signText[p.sign.index]
+      : '';
+  final houseText = p.house >= 1 && p.house <= 12
+      ? 'In the ${_ordinal(p.house)} house of ${houseThemes[p.house - 1]}, this energy is central to that area of life.'
+      : '';
+
+  return pw.Container(
+    padding: const pw.EdgeInsets.fromLTRB(12, 12, 12, 12),
+    decoration: pw.BoxDecoration(
+      border: pw.Border.all(color: _hairline, width: 0.5),
+      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+    ),
+    child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+      // Planet + sign + house header
+      pw.Text(
+        '${p.planet.displayName} in ${p.sign.displayName}',
+        style: pw.TextStyle(font: displayBold, fontSize: 13, color: _ink),
+      ),
+      pw.SizedBox(height: 2),
+      pw.Text(
+        '${_ordinal(p.house)} House · ${p.sign.element} · ${p.sign.traditionalRuler.displayName}-ruled',
+        style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
+      ),
+      pw.SizedBox(height: 8),
+      pw.Divider(color: _hairline, height: 1, thickness: 0.4),
+      pw.SizedBox(height: 6),
+      // Planet-in-sign interpretation
+      pw.Text(interpretation,
+          style: pw.TextStyle(font: bodyReg, fontSize: 8.5, color: _body)),
+      if (houseText.isNotEmpty) ...[
+        pw.SizedBox(height: 5),
+        pw.Text(houseText,
+            style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted)),
+      ],
+    ]),
+  );
+}
+
+String _ordinal(int n) {
+  if (n >= 11 && n <= 13) return '${n}th';
+  return switch (n % 10) {
+    1 => '${n}st',
+    2 => '${n}nd',
+    3 => '${n}rd',
+    _ => '${n}th',
+  };
 }
 
 // ── Stat chip ──────────────────────────────────────────────────────────────────
