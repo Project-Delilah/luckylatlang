@@ -1,5 +1,7 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -21,10 +23,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -52,6 +50,18 @@ android {
         }
         debug {
             // ponytail: default debug keystore — no key.properties needed for local builds
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    applicationVariants.all {
+        if (buildType.name == "release") {
+            outputs.all {
+                val out = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                val abi = out.filters.find { it.filterType == "ABI" }?.identifier ?: "universal"
+                val dt = SimpleDateFormat("yyyyMMdd_HHmm").format(Date())
+                out.outputFileName = "luckylatlang_${abi}_${dt}-signed.apk"
+            }
         }
     }
 }
