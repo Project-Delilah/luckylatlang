@@ -51,7 +51,38 @@ Tap any city to get a detailed breakdown — per-planet interpretation, natal si
 
 ## Screenshots
 
-> _Coming soon._
+<table>
+  <tr>
+    <td align="center"><img src="assets/screenshots/intro.png" width="180" /><br/><sub>Intro</sub></td>
+    <td align="center"><img src="assets/screenshots/profile_empty.png" width="180" /><br/><sub>New profile</sub></td>
+    <td align="center"><img src="assets/screenshots/profile_filled.png" width="180" /><br/><sub>Profile filled</sub></td>
+    <td align="center"><img src="assets/screenshots/profiles.png" width="180" /><br/><sub>Saved profiles</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/loading.png" width="180" /><br/><sub>Computing lines</sub></td>
+    <td align="center"><img src="assets/screenshots/home_loading.png" width="180" /><br/><sub>Map loading</sub></td>
+    <td align="center"><img src="assets/screenshots/map_home.png" width="180" /><br/><sub>Map — planetary lines</sub></td>
+    <td align="center"><img src="assets/screenshots/sidebar.png" width="180" /><br/><sub>Drawer — planet toggles</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/cities.png" width="180" /><br/><sub>City list</sub></td>
+    <td align="center"><img src="assets/screenshots/planet_positive.png" width="180" /><br/><sub>City detail — positive</sub></td>
+    <td align="center"><img src="assets/screenshots/planet_negative.png" width="180" /><br/><sub>City detail — challenging</sub></td>
+    <td align="center"><img src="assets/screenshots/widgets.png" width="180" /><br/><sub>Home screen widgets</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/report_1.png" width="180" /><br/><sub>PDF report — cover</sub></td>
+    <td align="center"><img src="assets/screenshots/report_2.png" width="180" /><br/><sub>PDF report — natal chart</sub></td>
+    <td align="center"><img src="assets/screenshots/report_3.png" width="180" /><br/><sub>PDF report — cities</sub></td>
+    <td align="center"><img src="assets/screenshots/about_1.png" width="180" /><br/><sub>About</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/about_2.png" width="180" /><br/><sub>About — mystic</sub></td>
+    <td align="center"><img src="assets/screenshots/about_3.png" width="180" /><br/><sub>About — developer</sub></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 ## How it works
 
