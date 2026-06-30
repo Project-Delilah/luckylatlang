@@ -33,7 +33,8 @@ PdfColor _tint(PdfColor c, double white) => PdfColor(
 Future<void> shareReport(BirthProfile profile, List<CitySpot> allSpots) async {
   final bytes = await _buildPdf(profile, allSpots);
   final safeName = profile.name.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
-  await Printing.sharePdf(bytes: bytes, filename: 'luckylatlang_$safeName.pdf');
+  final dt = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
+  await Printing.sharePdf(bytes: bytes, filename: 'luckylatlang_${safeName}_$dt.pdf');
 }
 
 Future<Uint8List> _buildPdf(BirthProfile profile, List<CitySpot> allSpots) async {
