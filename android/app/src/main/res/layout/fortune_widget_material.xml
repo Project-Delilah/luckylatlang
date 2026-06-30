@@ -3,32 +3,104 @@
     android:id="@+id/fortune_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:background="@drawable/fortune_widget_bg_material"
-    android:paddingStart="30dp"
-    android:paddingEnd="30dp"
-    android:paddingTop="18dp"
-    android:paddingBottom="18dp"
-    android:gravity="center_vertical">
+    android:weightSum="10">
 
-    <TextView
-        android:id="@+id/fortune_quote"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textColor="@color/fortune_material_text"
-        android:textSize="13sp"
-        android:fontFamily="serif"
-        android:lineSpacingMultiplier="1.25" />
+    <ViewFlipper
+        android:id="@+id/image_flipper"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:inAnimation="@anim/widget_fade_in"
+        android:outAnimation="@anim/widget_fade_out"
+        android:padding="14dp">
+        <ImageView
+            android:id="@+id/image_a"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+        <ImageView
+            android:id="@+id/image_b"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+    </ViewFlipper>
 
-    <TextView
-        android:id="@+id/fortune_attr"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text=""
-        android:textColor="@color/fortune_material_muted"
-        android:textSize="11sp"
-        android:fontFamily="sans-serif" />
+    <ViewFlipper
+        android:id="@+id/quote_flipper"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="6"
+        android:inAnimation="@anim/widget_fade_in"
+        android:outAnimation="@anim/widget_fade_out">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:paddingTop="18dp"
+            android:paddingBottom="18dp"
+            android:paddingEnd="22dp">
+            <TextView
+                android:id="@+id/quote_a"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/fortune_material_text"
+                android:textSize="13sp"
+                android:fontFamily="serif"
+                android:lineSpacingMultiplier="1.25"
+                android:maxLines="5"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/attr_a"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="@color/fortune_material_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:paddingTop="18dp"
+            android:paddingBottom="18dp"
+            android:paddingEnd="22dp">
+            <TextView
+                android:id="@+id/quote_b"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/fortune_material_text"
+                android:textSize="13sp"
+                android:fontFamily="serif"
+                android:lineSpacingMultiplier="1.25"
+                android:maxLines="5"
+                android:ellipsize="end" />
+            <TextView
+                android:id="@+id/attr_b"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="@color/fortune_material_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+    </ViewFlipper>
 
 </LinearLayout>
