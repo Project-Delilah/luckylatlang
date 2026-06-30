@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         applicationId = "com.isg32.luckylatlang"
-        minSdk = 21  // Android 5.0+ — explicitly pinned so upgrades can't raise it
+        minSdk = flutter.minSdkVersion  // Android 5.0+ — explicitly pinned so upgrades can't raise it
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -48,7 +48,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            // ponytail: default debug keystore — no key.properties needed for local builds
         }
     }
 }
