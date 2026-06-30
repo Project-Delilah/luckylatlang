@@ -493,7 +493,10 @@ pw.Widget _planetCard(
       ? 'In the ${_ordinal(p.house)} house of ${houseThemes[p.house - 1]}, this energy is central to that area of life.'
       : '';
 
-  final dignity = (planetDignity[p.planet] ?? const [])[p.sign.index < (planetDignity[p.planet]?.length ?? 0) ? p.sign.index : 0];
+  final dignityList = planetDignity[p.planet];
+  final dignity = (dignityList != null && p.sign.index < dignityList.length)
+      ? dignityList[p.sign.index]
+      : 'neutral';
   final dignityColor = _dignityColor(dignity);
   final fnColor = fn != null ? _fnColor(fn) : _muted;
   final remedy = planetRemedies[p.planet] ?? '';
