@@ -1,5 +1,7 @@
 import 'planet_line.dart';
 
+enum FunctionalNature { yogaKaraka, benefic, supportive, neutral, challenging }
+
 enum ZodiacSign {
   aries, taurus, gemini, cancer, leo, virgo,
   libra, scorpio, sagittarius, capricorn, aquarius, pisces;
@@ -67,4 +69,36 @@ class NatalChart {
   // Sign on the cusp of house N (1-based) in Whole Sign system
   ZodiacSign houseSign(int house) =>
       ZodiacSign.values[(ascSign.index + house - 1) % 12];
+
+  // Functional benefic/malefic classification for this ascendant (classical planets only)
+  Map<Planet, FunctionalNature> get functionalNature {
+    final owned = <Planet, Set<int>>{};
+    for (var h = 1; h <= 12; h++) {
+      final lord = houseSign(h).traditionalRuler;
+      owned.putIfAbsent(lord, () => {}).add(h);
+    }
+    const trikonas = {5, 9};       // pure trikonas (1st counted via trikonaAll below)
+    const kendraPure = {4, 7, 10}; // pure kendras
+    const trikonaAll = {1, 5, 9};
+    const kendraAll = {1, 4, 7, 10};
+    const dusthana = {6, 8, 12};
+
+    return Map.fromEntries(owned.entries.map((e) {
+      final h = e.value;
+      final isYK  = h.any(kendraPure.contains) && h.any(trikonas.contains);
+      final isTri = h.any(trikonaAll.contains);
+      final isKen = h.any(kendraAll.contains);
+      final isDus = h.any(dusthana.contains);
+      final nature = isYK
+          ? FunctionalNature.yogaKaraka
+          : isTri
+              ? FunctionalNature.benefic
+              : (isKen && !isDus)
+                  ? FunctionalNature.supportive
+                  : isDus
+                      ? FunctionalNature.challenging
+                      : FunctionalNature.neutral;
+      return MapEntry(e.key, nature);
+    }));
+  }
 }

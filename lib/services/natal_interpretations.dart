@@ -1,6 +1,99 @@
 import '../models/natal_chart.dart';
 import '../models/planet_line.dart';
 
+// ── Sign dignity (indexed by ZodiacSign.index 0=Aries…11=Pisces) ──────────────
+// Values: 'exalted' | 'own' | 'neutral' | 'debilitated'
+const Map<Planet, List<String>> planetDignity = {
+  Planet.sun:     ['exalted','neutral','neutral','neutral','own','neutral','debilitated','neutral','neutral','neutral','neutral','neutral'],
+  Planet.moon:    ['neutral','exalted','neutral','own','neutral','neutral','neutral','debilitated','neutral','neutral','neutral','neutral'],
+  Planet.mars:    ['own','neutral','neutral','debilitated','neutral','neutral','neutral','own','neutral','exalted','neutral','neutral'],
+  Planet.mercury: ['neutral','neutral','own','neutral','neutral','exalted','neutral','neutral','neutral','neutral','neutral','debilitated'],
+  Planet.jupiter: ['neutral','neutral','neutral','exalted','neutral','neutral','neutral','neutral','own','debilitated','neutral','own'],
+  Planet.venus:   ['neutral','own','neutral','neutral','neutral','debilitated','own','neutral','neutral','neutral','neutral','exalted'],
+  Planet.saturn:  ['debilitated','neutral','neutral','neutral','neutral','neutral','exalted','neutral','neutral','own','own','neutral'],
+};
+
+const Map<String, String> dignityNote = {
+  'exalted':     'Exalted — flowing with exceptional strength and clarity.',
+  'own':         'Own Sign — natural, unobstructed expression.',
+  'neutral':     'Balanced — functioning at a steady, reliable level.',
+  'debilitated': 'Debilitated — rewards conscious cultivation and the practice below.',
+};
+
+// ── Functional-nature labels / descriptions ────────────────────────────────────
+const Map<FunctionalNature, String> functionalNatureLabel = {
+  FunctionalNature.yogaKaraka:  'Yoga Karaka',
+  FunctionalNature.benefic:     'Benefic',
+  FunctionalNature.supportive:  'Supportive',
+  FunctionalNature.neutral:     'Neutral',
+  FunctionalNature.challenging: 'Challenging',
+};
+
+const Map<FunctionalNature, String> functionalNatureNote = {
+  FunctionalNature.yogaKaraka:  'Owns both a kendra and a trikona — the most auspicious planet for your ascendant.',
+  FunctionalNature.benefic:     'Rules a trikona house — works naturally in your favour.',
+  FunctionalNature.supportive:  'Rules a kendra house — strengthens action and achievement.',
+  FunctionalNature.neutral:     'Rules upachaya or neutral houses — a stable, background influence.',
+  FunctionalNature.challenging: 'Rules a dusthana house — its energy rewards conscious management.',
+};
+
+// ── Balance practices (remedies) per planet ───────────────────────────────────
+const Map<Planet, String> planetRemedies = {
+  Planet.sun:
+      'Greet the rising sun with a moment of stillness each morning — even 60 seconds facing east is powerful. '
+      'Honour authority figures and strengthen your relationship with your father or any father figure in your life. '
+      'Wear orange, gold or copper. Feed wheat or jaggery to birds on Sundays.',
+
+  Planet.moon:
+      'Spend regular time near water and eat light, nourishing food on Mondays. '
+      'Tend carefully to your relationship with your mother and the feminine figures in your life. '
+      'Wear white or silver. Practice being emotionally present rather than reactive — '
+      'Moon\'s highest gift is emotional intelligence, not emotional turbulence.',
+
+  Planet.mars:
+      'Channel this energy through disciplined physical movement — blocked Mars energy becomes aggression or frustration. '
+      'Be decisive and direct; indecision under pressure drains Mars unnecessarily. '
+      'Volunteer in physically demanding contexts, donate blood, or practise a martial art. Wear red on Tuesdays.',
+
+  Planet.mercury:
+      'Write, study and communicate daily — Mercury thrives through consistent mental engagement. '
+      'Keep every promise you make, as Mercury governs the sanctity of speech and agreement. '
+      'Learn a new skill, language or craft regularly. Eat green foods and maintain an organised environment.',
+
+  Planet.jupiter:
+      'Be genuinely generous with your knowledge, time and grace — not performatively, but from abundance. '
+      'Seek wisdom actively through reading, spiritual practice and mentorship. '
+      'Honour your teachers, past and present. Avoid hypocrisy in any form, '
+      'as Jupiter dims sharply when words and actions diverge. Wear yellow on Thursdays.',
+
+  Planet.venus:
+      'Invest in beauty, art, music and authentic pleasure without guilt — Venus suffers when beauty is denied or shamed. '
+      'Be kind and honest in relationships above all else. '
+      'Wear white or soft, light colours on Fridays. Cultivate warmth and elegance in your home environment.',
+
+  Planet.saturn:
+      'Embrace patience as a daily practice rather than an obstacle. '
+      'Serve others without expectation of recognition — particularly the elderly, disabled or those society overlooks. '
+      'Accept limitation and delay as teachers, not punishments. '
+      'Do not rush Saturn\'s timeline; its rewards arrive exactly when earned. Wear dark blue on Saturdays.',
+
+  Planet.uranus:
+      'Welcome disruption as evolution — Uranus dismantles only what has outgrown its usefulness. '
+      'When this planet\'s areas of life suddenly shift, resist the urge to cling to the old structure. '
+      'Your most significant breakthroughs will arrive dressed as chaos.',
+
+  Planet.neptune:
+      'Ground your spiritual sensitivity with structured daily practice — meditation, creative art or journaling '
+      'translates Neptune\'s gifts into the world. Without structure, Neptune dissolves into confusion or escapism. '
+      'Nature immersion, music and contemplative practice are your anchors.',
+
+  Planet.pluto:
+      'Do not resist what is being transformed in your life. '
+      'Pluto removes only what has outlived its purpose — the destruction is surgical, not random. '
+      'Embrace endings consciously and trust the regeneration that follows. '
+      'What replaces the old is always more authentic to who you truly are.',
+};
+
 // ── Ascendant sign descriptions ────────────────────────────────────────────────
 
 const Map<ZodiacSign, String> ascendantDescriptions = {

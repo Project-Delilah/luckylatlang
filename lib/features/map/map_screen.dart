@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,25 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   final _mapCtrl = MapController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _offline = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkConnectivity();
+  }
+
+  Future<void> _checkConnectivity() async {
+    try {
+      final result = await InternetAddress.lookup('tile.openstreetmap.org')
+          .timeout(const Duration(seconds: 4));
+      if (mounted) setState(() => _offline = result.isEmpty || result[0].rawAddress.isEmpty);
+    } on SocketException {
+      if (mounted) setState(() => _offline = true);
+    } catch (_) {
+      if (mounted) setState(() => _offline = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +139,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
           ),
+
+          // ── Offline banner ─────────────────────────────────────────────────
+          if (_offline)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 68,
+              left: 14,
+              right: 14,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark.withValues(alpha: 0.94),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.wifi_off_rounded,
+                        size: 15, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'No internet — map tiles offline. Planetary lines and city data still work.',
+                        style: AppTextStyles.bodySm
+                            .copyWith(color: AppColors.onDark),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _checkConnectivity,
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(Icons.refresh_rounded,
+                            size: 16, color: AppColors.muted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // ── Computing overlay ──────────────────────────────────────────────
           if (astroAsync.isLoading || spotsAsync.isLoading)

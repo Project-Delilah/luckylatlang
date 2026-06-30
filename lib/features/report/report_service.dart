@@ -11,6 +11,7 @@ import '../../models/natal_chart.dart';
 import '../../models/planet_line.dart';
 import '../../services/astro_service.dart';
 import '../../services/natal_interpretations.dart';
+// FunctionalNature, PlanetNatal, NatalChart etc. come from natal_chart.dart via natal_interpretations.dart
 
 // ── Brand palette ──────────────────────────────────────────────────────────────
 const _coral = PdfColor(0.800, 0.471, 0.361);       // #CC785C
@@ -434,18 +435,24 @@ pw.Widget _natalSection(
       pw.Divider(color: _hairline, height: 1, thickness: 0.5),
       pw.SizedBox(height: 14),
 
+      // Intro paragraph: which planets are working with / against this ascendant
+      _planetaryCouncilIntro(natal, bodyReg, bodyBold),
+      pw.SizedBox(height: 14),
+
       // Two-column planet cards
       for (var i = 0; i < order.length; i += 2) ...[
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Expanded(
-              child: _planetCard(natal.planets[order[i]]!, displayBold, bodyReg, bodyMed, bodyBold),
+              child: _planetCard(natal.planets[order[i]]!, natal.functionalNature[order[i]],
+                  displayBold, bodyReg, bodyMed, bodyBold),
             ),
             pw.SizedBox(width: 10),
             pw.Expanded(
               child: i + 1 < order.length && natal.planets[order[i + 1]] != null
-                  ? _planetCard(natal.planets[order[i + 1]]!, displayBold, bodyReg, bodyMed, bodyBold)
+                  ? _planetCard(natal.planets[order[i + 1]]!, natal.functionalNature[order[i + 1]],
+                      displayBold, bodyReg, bodyMed, bodyBold)
                   : pw.SizedBox(),
             ),
           ],
@@ -458,6 +465,7 @@ pw.Widget _natalSection(
 
 pw.Widget _planetCard(
   PlanetNatal p,
+  FunctionalNature? fn,
   pw.Font displayBold,
   pw.Font bodyReg,
   pw.Font bodyMed,
@@ -471,6 +479,11 @@ pw.Widget _planetCard(
       ? 'In the ${_ordinal(p.house)} house of ${houseThemes[p.house - 1]}, this energy is central to that area of life.'
       : '';
 
+  final dignity = (planetDignity[p.planet] ?? const [])[p.sign.index < (planetDignity[p.planet]?.length ?? 0) ? p.sign.index : 0];
+  final dignityColor = _dignityColor(dignity);
+  final fnColor = fn != null ? _fnColor(fn) : _muted;
+  final remedy = planetRemedies[p.planet] ?? '';
+
   return pw.Container(
     padding: const pw.EdgeInsets.fromLTRB(12, 12, 12, 12),
     decoration: pw.BoxDecoration(
@@ -478,7 +491,7 @@ pw.Widget _planetCard(
       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
     ),
     child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-      // Planet + sign + house header
+      // Header: planet name + sign
       pw.Text(
         '${p.planet.displayName} in ${p.sign.displayName}',
         style: pw.TextStyle(font: displayBold, fontSize: 13, color: _ink),
@@ -488,10 +501,21 @@ pw.Widget _planetCard(
         '${_ordinal(p.house)} House · ${p.sign.element} · ${p.sign.traditionalRuler.displayName}-ruled',
         style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted),
       ),
-      pw.SizedBox(height: 8),
+      pw.SizedBox(height: 6),
+      // Badges: functional nature + sign dignity
+      pw.Row(children: [
+        if (fn != null) ...[
+          _badge(functionalNatureLabel[fn]!, fnColor, bodyMed),
+          pw.SizedBox(width: 5),
+        ],
+        if (planetDignity.containsKey(p.planet))
+          _badge(dignity == 'own' ? 'Own Sign' : dignity[0].toUpperCase() + dignity.substring(1),
+              dignityColor, bodyMed),
+      ]),
+      pw.SizedBox(height: 7),
       pw.Divider(color: _hairline, height: 1, thickness: 0.4),
       pw.SizedBox(height: 6),
-      // Planet-in-sign interpretation
+      // Sign interpretation
       pw.Text(interpretation,
           style: pw.TextStyle(font: bodyReg, fontSize: 8.5, color: _body)),
       if (houseText.isNotEmpty) ...[
@@ -499,7 +523,84 @@ pw.Widget _planetCard(
         pw.Text(houseText,
             style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _muted)),
       ],
+      // Dignity note (when not neutral)
+      if (planetDignity.containsKey(p.planet) && dignity != 'neutral') ...[
+        pw.SizedBox(height: 5),
+        pw.Text(dignityNote[dignity] ?? '',
+            style: pw.TextStyle(font: bodyReg, fontSize: 7.5, color: dignityColor)),
+      ],
+      // Remedy
+      if (remedy.isNotEmpty) ...[
+        pw.SizedBox(height: 8),
+        pw.Divider(color: _hairline, height: 1, thickness: 0.4),
+        pw.SizedBox(height: 5),
+        pw.Text('BALANCE PRACTICE',
+            style: pw.TextStyle(font: bodyMed, fontSize: 7, color: _coral, letterSpacing: 0.6)),
+        pw.SizedBox(height: 3),
+        pw.Text(remedy,
+            style: pw.TextStyle(font: bodyReg, fontSize: 8, color: _body)),
+      ],
     ]),
+  );
+}
+
+pw.Widget _badge(String label, PdfColor color, pw.Font font) => pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: pw.BoxDecoration(
+        color: _tint(color, 0.82),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+      ),
+      child: pw.Text(label.toUpperCase(),
+          style: pw.TextStyle(font: font, fontSize: 6.5, color: color, letterSpacing: 0.5)),
+    );
+
+PdfColor _fnColor(FunctionalNature fn) => switch (fn) {
+      FunctionalNature.yogaKaraka  => _coral,
+      FunctionalNature.benefic     => _lucky,
+      FunctionalNature.supportive  => PdfColor(0.2, 0.65, 0.55),
+      FunctionalNature.neutral     => _muted,
+      FunctionalNature.challenging => _neutral,
+    };
+
+PdfColor _dignityColor(String d) => switch (d) {
+      'exalted'     => _lucky,
+      'own'         => PdfColor(0.2, 0.65, 0.55),
+      'debilitated' => _challenging,
+      _             => _muted,
+    };
+
+pw.Widget _planetaryCouncilIntro(NatalChart natal, pw.Font bodyReg, pw.Font bodyBold) {
+  final fn = natal.functionalNature;
+  final yk = fn.entries.where((e) => e.value == FunctionalNature.yogaKaraka).map((e) => e.key.displayName).toList();
+  final ben = fn.entries.where((e) => e.value == FunctionalNature.benefic).map((e) => e.key.displayName).toList();
+  final chal = fn.entries.where((e) => e.value == FunctionalNature.challenging).map((e) => e.key.displayName).toList();
+
+  final parts = <String>[];
+  if (yk.isNotEmpty) {
+    parts.add('${yk.join(' & ')} is your Yoga Karaka — the single most auspicious planet for your ${natal.ascSign.displayName} ascendant, owning both a kendra and a trikona house');
+  }
+  if (ben.isNotEmpty) {
+    final s = ben.join(' and ');
+    parts.add('$s ${ben.length == 1 ? "is a" : "are"} functional benefic${ben.length > 1 ? "s" : ""} working naturally in your favour');
+  }
+  if (chal.isNotEmpty) {
+    final s = chal.join(' and ');
+    parts.add('$s ${chal.length == 1 ? "is a" : "are"} functional malefic${chal.length > 1 ? "s" : ""} that reward the conscious balance practices shown in each card below');
+  }
+  final text = parts.isEmpty ? '' : '${parts.join('. ')}.';
+
+  return pw.Container(
+    padding: const pw.EdgeInsets.fromLTRB(14, 12, 14, 12),
+    decoration: pw.BoxDecoration(
+      color: _tint(_coral, 0.92),
+      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+    ),
+    child: pw.RichText(
+      text: pw.TextSpan(
+        style: pw.TextStyle(font: bodyReg, fontSize: 8.5, color: _body),
+        text: text,
+      ),
+    ),
   );
 }
 
