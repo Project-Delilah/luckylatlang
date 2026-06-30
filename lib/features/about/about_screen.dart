@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
@@ -14,10 +15,14 @@ class AboutScreen extends StatefulWidget {
 
 class _AboutScreenState extends State<AboutScreen> {
   late final String _mysticPath;
+  String _version = '';
 
   @override
   void initState() {
     super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = '${info.version}+${info.buildNumber}');
+    });
     final idx = math.Random().nextInt(30);
     _mysticPath = idx < 28
         ? 'assets/mystic/module_timeline_shop_sign_edu_${(idx + 1).toString().padLeft(2, '0')}.webp'
@@ -74,7 +79,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'Version 1.0.0',
+                      _version.isEmpty ? '—' : 'Version $_version',
                       style: AppTextStyles.caption.copyWith(color: AppColors.onDarkSoft),
                     ),
                   ),
