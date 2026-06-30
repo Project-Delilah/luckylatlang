@@ -7,30 +7,7 @@
     android:background="@drawable/fortune_widget_bg_dark"
     android:weightSum="10">
 
-    <!-- Image pane (40%) -->
-    <ViewFlipper
-        android:id="@+id/image_flipper"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="4"
-        android:inAnimation="@anim/widget_fade_in"
-        android:outAnimation="@anim/widget_fade_out"
-        android:padding="14dp">
-        <ImageView
-            android:id="@+id/image_a"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:contentDescription="@null" />
-        <ImageView
-            android:id="@+id/image_b"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:contentDescription="@null" />
-    </ViewFlipper>
-
-    <!-- Quote pane (60%) -->
+    <!-- Quote pane (left, 60%) -->
     <ViewFlipper
         android:id="@+id/quote_flipper"
         android:layout_width="0dp"
@@ -44,9 +21,10 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_vertical"
+            android:paddingStart="22dp"
             android:paddingTop="18dp"
             android:paddingBottom="18dp"
-            android:paddingEnd="22dp">
+            android:paddingEnd="10dp">
             <TextView
                 android:id="@+id/quote_a"
                 android:layout_width="match_parent"
@@ -76,9 +54,10 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_vertical"
+            android:paddingStart="22dp"
             android:paddingTop="18dp"
             android:paddingBottom="18dp"
-            android:paddingEnd="22dp">
+            android:paddingEnd="10dp">
             <TextView
                 android:id="@+id/quote_b"
                 android:layout_width="match_parent"
@@ -103,6 +82,31 @@
                 android:ellipsize="end" />
         </LinearLayout>
 
+    </ViewFlipper>
+
+    <!-- Image pane (right, 40%) -->
+    <ViewFlipper
+        android:id="@+id/image_flipper"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:inAnimation="@anim/widget_fade_in"
+        android:outAnimation="@anim/widget_fade_out"
+        android:padding="12dp">
+        <ImageView
+            android:id="@+id/image_a"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null" />
+        <ImageView
+            android:id="@+id/image_b"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null" />
     </ViewFlipper>
 
 </LinearLayout>

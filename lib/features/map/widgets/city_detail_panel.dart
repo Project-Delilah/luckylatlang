@@ -251,16 +251,34 @@ class _PlanetCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: inf.planet.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Stack(
+                    children: [
+                      Image.asset(
+                        'assets/planets/ddd_${inf.planet.name}.webp',
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.contain,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: inf.planet.color.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(inf.planet.glyph,
+                              style: TextStyle(fontSize: 11, color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
-                  alignment: Alignment.center,
-                  child: Text(inf.planet.glyph,
-                      style: TextStyle(fontSize: 18, color: inf.planet.color)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
