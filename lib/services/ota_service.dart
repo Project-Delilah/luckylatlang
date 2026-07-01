@@ -113,7 +113,8 @@ class OtaService {
       debugPrint('[OTA] already up-to-date');
       return null;
     } catch (e, st) {
-      debugPrint('[OTA] check failed: $e\n$st');
+      // print (not debugPrint) so errors appear in release logcat too
+      print('[OTA] check failed: $e\n$st'); // ignore: avoid_print
       return null;
     }
   }

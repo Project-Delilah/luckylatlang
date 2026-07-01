@@ -11,6 +11,7 @@ import '../../../models/birth_profile.dart';
 import '../../../models/planet_line.dart';
 import '../../../providers/astro_provider.dart';
 import '../../../providers/city_provider.dart';
+import '../../../providers/ota_provider.dart';
 import '../../../providers/profile_provider.dart';
 import '../../report/report_service.dart';
 
@@ -59,6 +60,8 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     final countries = ref.watch(availableCountriesProvider);
     final themeMode = ref.watch(themeModeProvider);
 
+    final hasUpdate = ref.watch(otaCheckProvider).valueOrNull != null;
+
     final filtered = _query.isEmpty
         ? countries
         : countries
@@ -103,6 +106,52 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
               )),
               _drawerDivider(),
             ],
+
+            // Check for Updates
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              leading: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.system_update_outlined,
+                      color: AppColors.onDarkSoft, size: 20),
+                  if (hasUpdate)
+                    Positioned(
+                      right: -3,
+                      top: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                            color: AppColors.primary, shape: BoxShape.circle),
+                      ),
+                    ),
+                ],
+              ),
+              title: Text(
+                'Check for Updates',
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.onDark),
+              ),
+              trailing: hasUpdate
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text('New',
+                          style: AppTextStyles.caption.copyWith(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600)),
+                    )
+                  : const Icon(Icons.chevron_right_rounded,
+                      color: AppColors.onDarkSoft, size: 18),
+              onTap: () {
+                Scaffold.of(context).closeDrawer();
+                context.push(Routes.updates);
+              },
+            ),
 
             // About app link
             ListTile(

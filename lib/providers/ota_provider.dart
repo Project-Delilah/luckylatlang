@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../services/ota_service.dart';
 
+final packageInfoProvider =
+    FutureProvider<PackageInfo>((_) => PackageInfo.fromPlatform());
+
 // ── Check ─────────────────────────────────────────────────────────────────────
 
 /// Runs once on first watch. Returns OtaResult if action needed, null otherwise.
 final otaCheckProvider = FutureProvider<OtaResult?>((ref) async {
-  final info = await PackageInfo.fromPlatform();
+  final info = await ref.watch(packageInfoProvider.future);
   final code = int.tryParse(info.buildNumber) ?? 0;
   return OtaService().checkForUpdate(code);
 });
