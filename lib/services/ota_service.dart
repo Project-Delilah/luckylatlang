@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -10,12 +11,16 @@ const _releaseJsonUrl =
 
 // Maps dart:ffi ABI to the arch string used in release.json / APK filenames
 String get _deviceArch {
-  return switch (Abi.current()) {
-    Abi.androidArm64 => 'arm64-v8a',
-    Abi.androidArm   => 'armeabi-v7a',
-    Abi.androidX64   => 'x86_64',
-    _                => 'arm64-v8a', // safe fallback — most modern devices
-  };
+  try {
+    return switch (Abi.current()) {
+      Abi.androidArm64 => 'arm64-v8a',
+      Abi.androidArm   => 'armeabi-v7a',
+      Abi.androidX64   => 'x86_64',
+      _                => 'arm64-v8a',
+    };
+  } catch (_) {
+    return 'arm64-v8a'; // fallback if FFI ABI lookup fails
+  }
 }
 
 class OtaApk {
@@ -76,33 +81,40 @@ class OtaService {
   /// Fetches release.json and returns an [OtaResult] if action is needed.
   /// Returns null if up-to-date or on any network/parse failure.
   Future<OtaResult?> checkForUpdate(int currentVersionCode) async {
+    debugPrint('[OTA] check — currentVersionCode=$currentVersionCode');
     try {
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
       final req = await client.getUrl(Uri.parse(_releaseJsonUrl));
       final res = await req.close().timeout(const Duration(seconds: 15));
+      debugPrint('[OTA] response status=${res.statusCode}');
       if (res.statusCode != 200) { client.close(); return null; }
       final body = await res.transform(utf8.decoder).join();
       client.close();
 
       final j = jsonDecode(body) as Map<String, dynamic>;
       final release = OtaRelease.fromJson(j);
+      debugPrint('[OTA] remote versionCode=${release.versionCode} arch=$_deviceArch');
 
       // Force rollback: admin flagged a bad release — push users to previous version
       if (release.forceRollback && release.rollback != null) {
         final rb = release.rollback!;
         if (currentVersionCode > rb.versionCode && rb.apkForDevice != null) {
+          debugPrint('[OTA] force rollback → v${rb.version}');
           return OtaResult(release: release, target: rb, isRollback: true);
         }
       }
 
       // Normal update
       if (release.versionCode > currentVersionCode && release.apkForDevice != null) {
+        debugPrint('[OTA] update available → v${release.version}');
         return OtaResult(release: release, target: release, isRollback: false);
       }
 
+      debugPrint('[OTA] already up-to-date');
       return null;
-    } catch (_) {
-      return null; // network down, malformed JSON, etc. — do nothing
+    } catch (e, st) {
+      debugPrint('[OTA] check failed: $e\n$st');
+      return null;
     }
   }
 
