@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/State-Riverpod-0175C2?style=flat" alt="Riverpod" />
   <img src="https://img.shields.io/badge/Map-OpenStreetMap-7EBC6F?style=flat" alt="OpenStreetMap" />
   <img src="https://img.shields.io/badge/Astro-Sidereal%20%7C%20Whole%20Sign-cc785c?style=flat" alt="Vedic Astrology" />
+  <img src="https://img.shields.io/badge/License-GPLv3-blue?style=flat" alt="License: GPL v3" />
 </p>
 
 ---
@@ -211,6 +212,16 @@ All commits using these assets include:
 ```
 Co-Authored-By: costarastrology <costarastrology@users.noreply.github.com>
 ```
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0** — see [`LICENSE`](LICENSE) for the full text.
+
+In short: you are free to use, modify, and distribute this software, but any distributed version (modified or not) must also be released under GPL v3 with source code available.
+
+Visual assets in `assets/animated/`, `assets/goth/`, `assets/mystic/`, `assets/planets/`, `assets/signs/`, `assets/topography/`, and `assets/body/` are by [@costarastrology](https://github.com/costarastrology) and retain their original terms.
+
+City data is from [GeoNames](https://www.geonames.org/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## City data
 
