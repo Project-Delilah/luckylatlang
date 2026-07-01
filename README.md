@@ -90,7 +90,7 @@ Tap any city to get a detailed breakdown — per-planet interpretation, natal si
 1. **Enter birth details** — date, time (optional but improves accuracy), and birth city
 2. **Orbital mechanics** — Meeus algorithms compute ecliptic longitudes; Lahiri ayanamsha converts to sidereal; whole-sign house system assigns houses
 3. **Line projection** — four great-circle arcs per planet (rising / setting / MC / IC) traced across the globe
-4. **City scoring** — cities within 500 km of a line are scored by proximity and the planet's functional nature for this ascendant; < 200 km = strong, 200–500 km = moderate
+4. **City scoring** — cities within 500 km of a line are scored using a **Gaussian falloff** (σ = 150 km): cities close to a line score near-full strength, with a steep drop beyond the orb. Score = planet weight × line weight × Gaussian strength; cities above ±0.8 are marked Lucky or Challenging
 5. **Explore** — tap any marker or blank spot on the map for a full breakdown; export the reading as PDF
 
 ## Tech stack

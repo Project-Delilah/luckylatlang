@@ -472,15 +472,26 @@ d = 6371 · 2 · atan2(√a, √(1-a))
 
 ### Influence radius
 
-Only cities within **500 km** of a line are scored. Cities further away are ignored.
+Only cities within **500 km** of a line are scored. Cities further away are ignored (this is a performance cut, not an astrological one — the Gaussian score at 500 km is already negligible).
 
-### Strength
+### Strength — Gaussian falloff
+
+The app uses a **Gaussian (bell curve) falloff** rather than a linear one, matching the traditional astrocartography concept of an *orb*: a city close to a line feels the full influence; beyond a certain distance the effect drops off sharply, like being outside a wave rather than just slightly further down a slope.
 
 ```
-strength = (500 - distance_km) / 500
+strength = exp( -d² / (2 × σ²) )    where σ = 150 km
 ```
 
-A city 0 km from a line has strength 1.0. A city 499 km away has strength ≈ 0.002. A city 500+ km away has strength 0 (excluded).
+| Distance from line | Strength |
+|---|---|
+| 0 km (on the line) | 1.00 |
+| 100 km | 0.90 |
+| 150 km (one σ) | 0.61 |
+| 250 km | 0.25 |
+| 400 km | 0.03 |
+| 500 km | ~0.00 |
+
+To tune the orb, change `_sigma` in `lib/services/city_service.dart`. A smaller σ tightens the orb (fewer cities qualify); a larger σ loosens it.
 
 ### Score per influence
 
@@ -515,10 +526,12 @@ score = planet.benefitScore × lineType.weight × strength
 The total city score is the sum of all individual influence scores. The rating threshold:
 
 ```
-score ≥ 1.5  → Lucky    (green marker)
-score ≤ −1.5 → Challenging (red marker)
-otherwise    → Neutral   (amber marker)
+score ≥ 0.8  → Lucky       (green marker)
+score ≤ −0.8 → Challenging (red marker)
+otherwise    → Neutral      (amber marker)
 ```
+
+The ±0.8 threshold is calibrated to the Gaussian scores: Jupiter on the line scores 3.0; the threshold is crossed at ~244 km from a Jupiter line, which preserves roughly the same practical orb as the old linear system while tightening weaker planets (Sun Lucky within ~178 km, Moon only Lucky when nearly on the line). Adjust in `lib/models/city_spot.dart`.
 
 ### Tapped map points
 
