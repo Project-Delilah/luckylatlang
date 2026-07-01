@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Exposes the app cache dir so FileProvider can hand the APK to the system installer -->
+    <cache-path name="ota_cache" path="." />
+</paths>

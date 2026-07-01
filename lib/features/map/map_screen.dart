@@ -12,6 +12,7 @@ import '../../providers/astro_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/profile_provider.dart';
 import 'widgets/city_spots_layer.dart';
+import 'widgets/ota_update_banner.dart';
 import 'widgets/computing_overlay.dart';
 import 'widgets/map_bottom_sheet.dart';
 import 'widgets/map_drawer.dart';
@@ -138,6 +139,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ],
               ),
             ),
+          ),
+
+          // ── OTA update banner ──────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 68,
+            left: 0,
+            right: 0,
+            child: const OtaUpdateBanner(),
           ),
 
           // ── Offline banner ─────────────────────────────────────────────────
