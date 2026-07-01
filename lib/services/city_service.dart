@@ -8,6 +8,8 @@ import '../services/astro_service.dart';
 // Radius within which a line influences a city (km)
 const _influenceRadiusKm = 500.0;
 // ~1 degree ≈ 111km → 500km ≈ 4.5 degrees
+// Gaussian falloff: σ=150 km — strong within orb (~100 km), steep drop beyond
+const _sigma = 150.0;
 const _influenceDegreesLat = 5.0;
 // longitude degrees varies with latitude — we use a conservative 8°
 
@@ -76,7 +78,7 @@ class CityService {
       if (minDist > _influenceRadiusKm) continue;
 
       seen.add(key);
-      final strength = (_influenceRadiusKm - minDist) / _influenceRadiusKm;
+      final strength = math.exp(-(minDist * minDist) / (2 * _sigma * _sigma));
       influences.add(LineInfluence(
         planet: line.planet,
         type: line.type,
@@ -150,7 +152,7 @@ class CityService {
         if (distKm > _influenceRadiusKm) continue;
 
         seen.add(key);
-        final strength = (_influenceRadiusKm - distKm) / _influenceRadiusKm;
+        final strength = math.exp(-(distKm * distKm) / (2 * _sigma * _sigma));
         influences.add(LineInfluence(
           planet: candidate.line.planet,
           type: candidate.line.type,

@@ -45,8 +45,8 @@ class CitySpot {
   LatLng get latLng => LatLng(latitude, longitude);
 
   SpotRating get rating {
-    if (score >= 1.5) return SpotRating.lucky;
-    if (score <= -1.5) return SpotRating.challenging;
+    if (score >= 0.8) return SpotRating.lucky;
+    if (score <= -0.8) return SpotRating.challenging;
     return SpotRating.neutral;
   }
 
